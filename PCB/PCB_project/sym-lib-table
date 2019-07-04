@@ -1,0 +1,4 @@
+(sym_lib_table
+  (lib (name servos-rescue)(type Legacy)(uri ${KIPRJMOD}/servos-rescue.lib)(options "")(descr ""))
+  (lib (name stepper-rescue)(type Legacy)(uri ${KIPRJMOD}/stepper-rescue.lib)(options "")(descr ""))
+)

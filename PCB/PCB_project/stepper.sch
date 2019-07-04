@@ -1,0 +1,605 @@
+EESchema Schematic File Version 4
+LIBS:stepper-cache
+EELAYER 26 0
+EELAYER END
+$Descr User 6378 7677
+encoding utf-8
+Sheet 1 1
+Title ""
+Date ""
+Rev ""
+Comp ""
+Comment1 ""
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Comp
+L stepper-rescue:NUCLEO-L432KC-STM32L432KCU6 U1
+U 1 1 5BFFF51A
+P 1600 1600
+F 0 "U1" H 1600 2620 50  0000 C CNN
+F 1 "NUCLEO-L432KC" H 1600 2529 50  0000 C CNN
+F 2 "STM32:NUCLEO-L432KC" H 1550 2700 50  0001 L BNN
+F 3 "STMicroelectronics" H 1550 2600 50  0001 L BNN
+F 4 "STM32L432KCU6" H 1550 2500 50  0001 L BNN "Pole8"
+	1    1600 1600
+	1    0    0    -1  
+$EndComp
+$Comp
+L stepper-rescue:+5V-power #PWR0101
+U 1 1 5BFFF5F6
+P 2300 1200
+F 0 "#PWR0101" H 2300 1050 50  0001 C CNN
+F 1 "+5V" V 2315 1328 50  0000 L CNN
+F 2 "" H 2300 1200 50  0001 C CNN
+F 3 "" H 2300 1200 50  0001 C CNN
+	1    2300 1200
+	0    1    1    0   
+$EndComp
+$Comp
+L stepper-rescue:GND-power #PWR0102
+U 1 1 5BFFF641
+P 2300 1000
+F 0 "#PWR0102" H 2300 750 50  0001 C CNN
+F 1 "GND" V 2305 872 50  0000 R CNN
+F 2 "" H 2300 1000 50  0001 C CNN
+F 3 "" H 2300 1000 50  0001 C CNN
+	1    2300 1000
+	0    -1   -1   0   
+$EndComp
+$Comp
+L stepper-rescue:+3V3-power #PWR0104
+U 1 1 5BFFF6F6
+P 2300 2200
+F 0 "#PWR0104" H 2300 2050 50  0001 C CNN
+F 1 "+3V3" V 2315 2328 50  0000 L CNN
+F 2 "" H 2300 2200 50  0001 C CNN
+F 3 "" H 2300 2200 50  0001 C CNN
+	1    2300 2200
+	0    1    1    0   
+$EndComp
+$Comp
+L stepper-rescue:AMIS-30543-POLOLU-motor_driver U2
+U 1 1 5C0001DA
+P 3600 1400
+F 0 "U2" H 3600 2265 50  0000 C CNN
+F 1 "AMIS-30543-POLOLU" H 3600 2174 50  0000 C CNN
+F 2 "motor_driver:AMIS-30543-POLOLU" H 3750 1450 50  0001 C CNN
+F 3 "" H 3750 1450 50  0001 C CNN
+	1    3600 1400
+	1    0    0    -1  
+$EndComp
+Text GLabel 3100 1300 0    50   Input ~ 0
+MISO
+Text GLabel 3100 1400 0    50   Input ~ 0
+MOSI
+Text GLabel 3100 1500 0    50   Input ~ 0
+SCK
+$Comp
+L stepper-rescue:GND-power #PWR0105
+U 1 1 5C000613
+P 3100 1000
+F 0 "#PWR0105" H 3100 750 50  0001 C CNN
+F 1 "GND" V 3105 872 50  0000 R CNN
+F 2 "" H 3100 1000 50  0001 C CNN
+F 3 "" H 3100 1000 50  0001 C CNN
+	1    3100 1000
+	0    1    1    0   
+$EndComp
+$Comp
+L stepper-rescue:GND-power #PWR0106
+U 1 1 5C000644
+P 4100 1250
+F 0 "#PWR0106" H 4100 1000 50  0001 C CNN
+F 1 "GND" V 4105 1122 50  0000 R CNN
+F 2 "" H 4100 1250 50  0001 C CNN
+F 3 "" H 4100 1250 50  0001 C CNN
+	1    4100 1250
+	0    -1   -1   0   
+$EndComp
+$Comp
+L stepper-rescue:+12V-power #PWR0107
+U 1 1 5C0006CE
+P 4100 1150
+F 0 "#PWR0107" H 4100 1000 50  0001 C CNN
+F 1 "+12V" V 4115 1278 50  0000 L CNN
+F 2 "" H 4100 1150 50  0001 C CNN
+F 3 "" H 4100 1150 50  0001 C CNN
+	1    4100 1150
+	0    1    1    0   
+$EndComp
+$Comp
+L stepper-rescue:+3V3-power #PWR0108
+U 1 1 5C000720
+P 3100 900
+F 0 "#PWR0108" H 3100 750 50  0001 C CNN
+F 1 "+3V3" V 3115 1028 50  0000 L CNN
+F 2 "" H 3100 900 50  0001 C CNN
+F 3 "" H 3100 900 50  0001 C CNN
+	1    3100 900 
+	0    -1   -1   0   
+$EndComp
+NoConn ~ 3100 2000
+NoConn ~ 3100 1800
+NoConn ~ 3100 1700
+NoConn ~ 3100 800 
+$Comp
+L stepper-rescue:DB15_Female_HighDensity-Connector J1
+U 1 1 5C000AD8
+P 5150 1450
+F 0 "J1" H 5150 2317 50  0000 C CNN
+F 1 "DB15_Female_HighDensity" H 5150 2226 50  0000 C CNN
+F 2 "motor_driver:DSUB-15-HD_Male_Horizontal_Pitch2.29x2.54mm_EdgePinOffset9.40mm" H 4200 1850 50  0001 C CNN
+F 3 " ~" H 4200 1850 50  0001 C CNN
+	1    5150 1450
+	1    0    0    -1  
+$EndComp
+$Comp
+L stepper-rescue:GND-power #PWR0109
+U 1 1 5C000B72
+P 4850 1050
+F 0 "#PWR0109" H 4850 800 50  0001 C CNN
+F 1 "GND" V 4855 922 50  0000 R CNN
+F 2 "" H 4850 1050 50  0001 C CNN
+F 3 "" H 4850 1050 50  0001 C CNN
+	1    4850 1050
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	4850 1150 4450 1150
+Wire Wire Line
+	4450 1150 4450 1350
+Wire Wire Line
+	4450 1350 4100 1350
+Wire Wire Line
+	4100 1450 4350 1450
+Wire Wire Line
+	4350 1450 4350 950 
+Wire Wire Line
+	4350 950  4850 950 
+Wire Wire Line
+	4850 1850 4350 1850
+Wire Wire Line
+	4350 1850 4350 1650
+Wire Wire Line
+	4350 1650 4100 1650
+Wire Wire Line
+	4100 1550 4450 1550
+Wire Wire Line
+	4450 1550 4450 1650
+Wire Wire Line
+	4450 1650 4850 1650
+$Comp
+L stepper-rescue:+5V-power #PWR0110
+U 1 1 5C000D00
+P 5450 1450
+F 0 "#PWR0110" H 5450 1300 50  0001 C CNN
+F 1 "+5V" V 5465 1578 50  0000 L CNN
+F 2 "" H 5450 1450 50  0001 C CNN
+F 3 "" H 5450 1450 50  0001 C CNN
+	1    5450 1450
+	0    1    1    0   
+$EndComp
+$Comp
+L stepper-rescue:GND-power #PWR0111
+U 1 1 5C000D29
+P 5450 1850
+F 0 "#PWR0111" H 5450 1600 50  0001 C CNN
+F 1 "GND" V 5455 1722 50  0000 R CNN
+F 2 "" H 5450 1850 50  0001 C CNN
+F 3 "" H 5450 1850 50  0001 C CNN
+	1    5450 1850
+	0    -1   -1   0   
+$EndComp
+$Comp
+L stepper-rescue:AMIS-30543-POLOLU-motor_driver U3
+U 1 1 5C00105D
+P 3600 3200
+F 0 "U3" H 3600 4065 50  0000 C CNN
+F 1 "AMIS-30543-POLOLU" H 3600 3974 50  0000 C CNN
+F 2 "motor_driver:AMIS-30543-POLOLU" H 3750 3250 50  0001 C CNN
+F 3 "" H 3750 3250 50  0001 C CNN
+	1    3600 3200
+	1    0    0    -1  
+$EndComp
+Text GLabel 3100 3100 0    50   Input ~ 0
+MISO
+Text GLabel 3100 3200 0    50   Input ~ 0
+MOSI
+Text GLabel 3100 3300 0    50   Input ~ 0
+SCK
+$Comp
+L stepper-rescue:GND-power #PWR0112
+U 1 1 5C001066
+P 3100 2800
+F 0 "#PWR0112" H 3100 2550 50  0001 C CNN
+F 1 "GND" V 3105 2672 50  0000 R CNN
+F 2 "" H 3100 2800 50  0001 C CNN
+F 3 "" H 3100 2800 50  0001 C CNN
+	1    3100 2800
+	0    1    1    0   
+$EndComp
+$Comp
+L stepper-rescue:GND-power #PWR0113
+U 1 1 5C00106C
+P 4100 3050
+F 0 "#PWR0113" H 4100 2800 50  0001 C CNN
+F 1 "GND" V 4105 2922 50  0000 R CNN
+F 2 "" H 4100 3050 50  0001 C CNN
+F 3 "" H 4100 3050 50  0001 C CNN
+	1    4100 3050
+	0    -1   -1   0   
+$EndComp
+$Comp
+L stepper-rescue:+12V-power #PWR0114
+U 1 1 5C001072
+P 4100 2950
+F 0 "#PWR0114" H 4100 2800 50  0001 C CNN
+F 1 "+12V" V 4115 3078 50  0000 L CNN
+F 2 "" H 4100 2950 50  0001 C CNN
+F 3 "" H 4100 2950 50  0001 C CNN
+	1    4100 2950
+	0    1    1    0   
+$EndComp
+$Comp
+L stepper-rescue:+3V3-power #PWR0115
+U 1 1 5C001078
+P 3100 2700
+F 0 "#PWR0115" H 3100 2550 50  0001 C CNN
+F 1 "+3V3" V 3115 2828 50  0000 L CNN
+F 2 "" H 3100 2700 50  0001 C CNN
+F 3 "" H 3100 2700 50  0001 C CNN
+	1    3100 2700
+	0    -1   -1   0   
+$EndComp
+NoConn ~ 3100 3800
+NoConn ~ 3100 3700
+NoConn ~ 3100 3600
+NoConn ~ 3100 3500
+NoConn ~ 3100 2600
+$Comp
+L stepper-rescue:DB15_Female_HighDensity-Connector J2
+U 1 1 5C001083
+P 5150 3250
+F 0 "J2" H 5150 4117 50  0000 C CNN
+F 1 "DB15_Female_HighDensity" H 5150 4026 50  0000 C CNN
+F 2 "motor_driver:DSUB-15-HD_Male_Horizontal_Pitch2.29x2.54mm_EdgePinOffset9.40mm" H 4200 3650 50  0001 C CNN
+F 3 " ~" H 4200 3650 50  0001 C CNN
+	1    5150 3250
+	1    0    0    -1  
+$EndComp
+$Comp
+L stepper-rescue:GND-power #PWR0116
+U 1 1 5C001089
+P 4850 2850
+F 0 "#PWR0116" H 4850 2600 50  0001 C CNN
+F 1 "GND" V 4855 2722 50  0000 R CNN
+F 2 "" H 4850 2850 50  0001 C CNN
+F 3 "" H 4850 2850 50  0001 C CNN
+	1    4850 2850
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	4850 2950 4450 2950
+Wire Wire Line
+	4450 2950 4450 3150
+Wire Wire Line
+	4450 3150 4100 3150
+Wire Wire Line
+	4100 3250 4350 3250
+Wire Wire Line
+	4350 3250 4350 2750
+Wire Wire Line
+	4350 2750 4850 2750
+Wire Wire Line
+	4850 3650 4350 3650
+Wire Wire Line
+	4350 3650 4350 3450
+Wire Wire Line
+	4350 3450 4100 3450
+Wire Wire Line
+	4100 3350 4450 3350
+Wire Wire Line
+	4450 3350 4450 3450
+Wire Wire Line
+	4450 3450 4850 3450
+$Comp
+L stepper-rescue:+5V-power #PWR0117
+U 1 1 5C00109B
+P 5450 3250
+F 0 "#PWR0117" H 5450 3100 50  0001 C CNN
+F 1 "+5V" V 5465 3378 50  0000 L CNN
+F 2 "" H 5450 3250 50  0001 C CNN
+F 3 "" H 5450 3250 50  0001 C CNN
+	1    5450 3250
+	0    1    1    0   
+$EndComp
+$Comp
+L stepper-rescue:GND-power #PWR0118
+U 1 1 5C0010A1
+P 5450 3650
+F 0 "#PWR0118" H 5450 3400 50  0001 C CNN
+F 1 "GND" V 5455 3522 50  0000 R CNN
+F 2 "" H 5450 3650 50  0001 C CNN
+F 3 "" H 5450 3650 50  0001 C CNN
+	1    5450 3650
+	0    -1   -1   0   
+$EndComp
+$Comp
+L stepper-rescue:AMIS-30543-POLOLU-motor_driver U4
+U 1 1 5C00136A
+P 3600 5000
+F 0 "U4" H 3600 5865 50  0000 C CNN
+F 1 "AMIS-30543-POLOLU" H 3600 5774 50  0000 C CNN
+F 2 "motor_driver:AMIS-30543-POLOLU" H 3750 5050 50  0001 C CNN
+F 3 "" H 3750 5050 50  0001 C CNN
+	1    3600 5000
+	1    0    0    -1  
+$EndComp
+Text GLabel 3100 4900 0    50   Input ~ 0
+MISO
+Text GLabel 3100 5000 0    50   Input ~ 0
+MOSI
+Text GLabel 3100 5100 0    50   Input ~ 0
+SCK
+$Comp
+L stepper-rescue:GND-power #PWR0119
+U 1 1 5C001373
+P 3100 4600
+F 0 "#PWR0119" H 3100 4350 50  0001 C CNN
+F 1 "GND" V 3105 4472 50  0000 R CNN
+F 2 "" H 3100 4600 50  0001 C CNN
+F 3 "" H 3100 4600 50  0001 C CNN
+	1    3100 4600
+	0    1    1    0   
+$EndComp
+$Comp
+L stepper-rescue:GND-power #PWR0120
+U 1 1 5C001379
+P 4100 4850
+F 0 "#PWR0120" H 4100 4600 50  0001 C CNN
+F 1 "GND" V 4105 4722 50  0000 R CNN
+F 2 "" H 4100 4850 50  0001 C CNN
+F 3 "" H 4100 4850 50  0001 C CNN
+	1    4100 4850
+	0    -1   -1   0   
+$EndComp
+$Comp
+L stepper-rescue:+12V-power #PWR0121
+U 1 1 5C00137F
+P 4100 4750
+F 0 "#PWR0121" H 4100 4600 50  0001 C CNN
+F 1 "+12V" V 4115 4878 50  0000 L CNN
+F 2 "" H 4100 4750 50  0001 C CNN
+F 3 "" H 4100 4750 50  0001 C CNN
+	1    4100 4750
+	0    1    1    0   
+$EndComp
+$Comp
+L stepper-rescue:+3V3-power #PWR0122
+U 1 1 5C001385
+P 3100 4500
+F 0 "#PWR0122" H 3100 4350 50  0001 C CNN
+F 1 "+3V3" V 3115 4628 50  0000 L CNN
+F 2 "" H 3100 4500 50  0001 C CNN
+F 3 "" H 3100 4500 50  0001 C CNN
+	1    3100 4500
+	0    -1   -1   0   
+$EndComp
+NoConn ~ 3100 5600
+NoConn ~ 3100 5500
+NoConn ~ 3100 5400
+NoConn ~ 3100 5300
+NoConn ~ 3100 4400
+$Comp
+L stepper-rescue:DB15_Female_HighDensity-Connector J3
+U 1 1 5C001390
+P 5150 5050
+F 0 "J3" H 5150 5917 50  0000 C CNN
+F 1 "DB15_Female_HighDensity" H 5150 5826 50  0000 C CNN
+F 2 "motor_driver:DSUB-15-HD_Male_Horizontal_Pitch2.29x2.54mm_EdgePinOffset9.40mm" H 4200 5450 50  0001 C CNN
+F 3 " ~" H 4200 5450 50  0001 C CNN
+	1    5150 5050
+	1    0    0    -1  
+$EndComp
+$Comp
+L stepper-rescue:GND-power #PWR0123
+U 1 1 5C001396
+P 4850 4650
+F 0 "#PWR0123" H 4850 4400 50  0001 C CNN
+F 1 "GND" V 4855 4522 50  0000 R CNN
+F 2 "" H 4850 4650 50  0001 C CNN
+F 3 "" H 4850 4650 50  0001 C CNN
+	1    4850 4650
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	4850 4750 4450 4750
+Wire Wire Line
+	4450 4750 4450 4950
+Wire Wire Line
+	4450 4950 4100 4950
+Wire Wire Line
+	4100 5050 4350 5050
+Wire Wire Line
+	4350 5050 4350 4550
+Wire Wire Line
+	4350 4550 4850 4550
+Wire Wire Line
+	4850 5450 4350 5450
+Wire Wire Line
+	4350 5450 4350 5250
+Wire Wire Line
+	4350 5250 4100 5250
+Wire Wire Line
+	4100 5150 4450 5150
+Wire Wire Line
+	4450 5150 4450 5250
+Wire Wire Line
+	4450 5250 4850 5250
+$Comp
+L stepper-rescue:+5V-power #PWR0124
+U 1 1 5C0013A8
+P 5450 5050
+F 0 "#PWR0124" H 5450 4900 50  0001 C CNN
+F 1 "+5V" V 5465 5178 50  0000 L CNN
+F 2 "" H 5450 5050 50  0001 C CNN
+F 3 "" H 5450 5050 50  0001 C CNN
+	1    5450 5050
+	0    1    1    0   
+$EndComp
+$Comp
+L stepper-rescue:GND-power #PWR0125
+U 1 1 5C0013AE
+P 5450 5450
+F 0 "#PWR0125" H 5450 5200 50  0001 C CNN
+F 1 "GND" V 5455 5322 50  0000 R CNN
+F 2 "" H 5450 5450 50  0001 C CNN
+F 3 "" H 5450 5450 50  0001 C CNN
+	1    5450 5450
+	0    -1   -1   0   
+$EndComp
+Text GLabel 3100 1100 0    50   Input ~ 0
+NXT1
+Text GLabel 3100 1200 0    50   Input ~ 0
+DIR1
+Text GLabel 3100 1600 0    50   Input ~ 0
+CS1
+Text GLabel 4850 1250 0    50   Input ~ 0
+FLIMIT1
+Text GLabel 4850 1450 0    50   Input ~ 0
+RLIMIT1
+Text GLabel 3100 2900 0    50   Input ~ 0
+NXT2
+Text GLabel 3100 3000 0    50   Input ~ 0
+DIR2
+Text GLabel 3100 3400 0    50   Input ~ 0
+CS2
+Text GLabel 4850 3050 0    50   Input ~ 0
+FLIMIT2
+Text GLabel 4850 3250 0    50   Input ~ 0
+RLIMIT2
+Text GLabel 4850 4850 0    50   Input ~ 0
+FLIMIT3
+Text GLabel 4850 5050 0    50   Input ~ 0
+RLIMIT3
+Text GLabel 3100 4700 0    50   Input ~ 0
+NXT3
+Text GLabel 3100 4800 0    50   Input ~ 0
+DIR3
+Text GLabel 3100 5200 0    50   Input ~ 0
+CS3
+$Comp
+L stepper-rescue:+12V-power #PWR0126
+U 1 1 5C004B89
+P 1800 2800
+F 0 "#PWR0126" H 1800 2650 50  0001 C CNN
+F 1 "+12V" V 1815 2928 50  0000 L CNN
+F 2 "" H 1800 2800 50  0001 C CNN
+F 3 "" H 1800 2800 50  0001 C CNN
+	1    1800 2800
+	0    1    1    0   
+$EndComp
+$Comp
+L stepper-rescue:GND-power #PWR0127
+U 1 1 5C004BB4
+P 1800 3050
+F 0 "#PWR0127" H 1800 2800 50  0001 C CNN
+F 1 "GND" V 1805 2922 50  0000 R CNN
+F 2 "" H 1800 3050 50  0001 C CNN
+F 3 "" H 1800 3050 50  0001 C CNN
+	1    1800 3050
+	0    -1   -1   0   
+$EndComp
+Text GLabel 3100 1900 0    50   Input ~ 0
+RESET
+Text GLabel 2300 1100 2    50   Input ~ 0
+RESET
+$Comp
+L stepper-rescue:WIREPAD-motor_driver U5
+U 1 1 5C00593D
+P 1600 2800
+F 0 "U5" H 1644 2622 50  0000 C CNN
+F 1 "+12V" H 1644 2713 50  0000 C CNN
+F 2 "Wire_Pads:SolderWirePad_single_2mmDrill" H 1600 2800 50  0001 C CNN
+F 3 "" H 1600 2800 50  0001 C CNN
+	1    1600 2800
+	-1   0    0    1   
+$EndComp
+$Comp
+L stepper-rescue:WIREPAD-motor_driver U6
+U 1 1 5C0059CF
+P 1600 3050
+F 0 "U6" H 1644 2872 50  0000 C CNN
+F 1 "GND" H 1644 2963 50  0000 C CNN
+F 2 "Wire_Pads:SolderWirePad_single_2mmDrill" H 1600 3050 50  0001 C CNN
+F 3 "" H 1600 3050 50  0001 C CNN
+	1    1600 3050
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	1600 2800 1800 2800
+Wire Wire Line
+	1800 3050 1600 3050
+Text GLabel 900  900  0    50   Input ~ 0
+NXT1
+Text GLabel 2300 1600 2    50   Input ~ 0
+DIR1
+Text GLabel 2300 1700 2    50   Input ~ 0
+CS1
+Text GLabel 2300 1800 2    50   Input ~ 0
+FLIMIT1
+Text GLabel 2300 2000 2    50   Input ~ 0
+RLIMIT1
+Text GLabel 2300 1900 2    50   Input ~ 0
+SCK
+Text GLabel 2300 1500 2    50   Input ~ 0
+MISO
+Text GLabel 2300 1400 2    50   Input ~ 0
+MOSI
+Text GLabel 900  1000 0    50   Input ~ 0
+NXT2
+Text GLabel 900  1300 0    50   Input ~ 0
+DIR2
+Text GLabel 900  1400 0    50   Input ~ 0
+CS2
+Text GLabel 900  1500 0    50   Input ~ 0
+FLIMIT2
+Text GLabel 900  1600 0    50   Input ~ 0
+RLIMIT2
+Text GLabel 900  1700 0    50   Input ~ 0
+NXT3
+Text GLabel 900  2000 0    50   Input ~ 0
+DIR3
+Text GLabel 900  2100 0    50   Input ~ 0
+CS3
+Text GLabel 900  2200 0    50   Input ~ 0
+FLIMIT3
+Text GLabel 900  2300 0    50   Input ~ 0
+RLIMIT3
+NoConn ~ 2300 1300
+NoConn ~ 2300 2100
+NoConn ~ 2300 2300
+NoConn ~ 900  1100
+NoConn ~ 900  1200
+NoConn ~ 2300 900 
+NoConn ~ 4850 5350
+NoConn ~ 4850 5150
+NoConn ~ 4850 4950
+NoConn ~ 5450 4650
+NoConn ~ 5450 4850
+NoConn ~ 5450 5250
+NoConn ~ 5450 2850
+NoConn ~ 5450 3050
+NoConn ~ 5450 3450
+NoConn ~ 4850 3550
+NoConn ~ 4850 3350
+NoConn ~ 4850 3150
+NoConn ~ 5450 1050
+NoConn ~ 5450 1250
+NoConn ~ 5450 1650
+NoConn ~ 4850 1550
+NoConn ~ 4850 1350
+NoConn ~ 4850 1750
+$EndSCHEMATC
