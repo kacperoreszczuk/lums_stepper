@@ -40,6 +40,12 @@ Custom solution allowed me to implement important additional features. The most 
 Single device is able to control three bipolar stepper motors with 1/64 microsteps precision. Maximum current is about \SI{1.5}{A} per motor and the supply voltage must be between \SI{6}{V} and \SI{30}{V}.
 Low level motor driving operation  is performed by\textit{AMIS-30543} driver on \textit{Pololu} breakout board. Three such drivers are connected to \textit{NUCLEO32}  board with \textit{STM32L432KC} microcontroller. Nucleo board connected via USB to computer provides virtual serial port for communication and power for logic layer of device. Separate power connector is provided on main PCB for motor operation and three high-density D-SUB15 female connectors (ICD15S13E4GV00LF) for motors. Full schematics of the device is presented in Figure \ref{schematics}. PCB board is double-sided. See Figure \ref{pcb} for PCB layout. This design, which effectively consists of 8 elements makes the project easy and quick to deploy in several copies. The driver is confined in 3D-printed case (Figure \ref{case}) protecting it and allowing mounting to optic table. Picture \ref{photo} shows assembled device with the top lid removed. Design files for PCB and case along with source code for microcontroller are available at project page: \url{github.com/kacperoreszczuk/lums_stepper/}. 
 
+\begin{figure}[h]
+ \centering
+ \includegraphics[width = 12.5cm]{photo.png}
+\caption {Assembled LUMS stepper.} \label{photo}
+\end{figure}
+
 \section{Software and protocol}
 
 Driver has two basic operation modes - movement with given velocity or movement to given position. In either of the cases the movement of motor is smoothed at starting and stopping. For user convenience speeds and positions are expressed in real units (for example millimeters in case of linear travel stage), not motor steps. When the mechanical setup of driven actuator is not completely rigid, the mechanical hysteresis can occur. Due to this effect real position of the  actuator depends on the direction from which set position is approached. In this solution allows user can specify the amplitude od mechanical hysteresis. Algorithm will track previous movements and compensate the offsets in a manner transparent for the user. 
