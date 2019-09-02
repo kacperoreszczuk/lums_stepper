@@ -5,6 +5,8 @@
 #include "handles.h"
 #include "math.h"
 
+#define DRIVER_ID 106 // in range 101 to 199
+
 #define min(a,b) (((a)<(b))?(a):(b))
 #define max(a,b) (((a)>(b))?(a):(b))
 #define abs(a) (((a)>0)?(a):-(a))
@@ -587,6 +589,11 @@ void uart_analyse_buffer()
                 count = sprintf((char*)buffer, "rsF%d R%d\r",
                                 HAL_GPIO_ReadPin(FLIMIT_Port[motor], FLIMIT_Pin[motor]),
                                 HAL_GPIO_ReadPin(RLIMIT_Port[motor], RLIMIT_Pin[motor]));
+                HAL_UART_Transmit(&huart2, buffer, count, 500);
+            }
+            else if (uart_message[j] == 'i' && uart_message[j + 1] == 'd')
+            {
+                count = sprintf((char*)buffer, "id%d\r", DRIVER_ID);
                 HAL_UART_Transmit(&huart2, buffer, count, 500);
             }
             /*else if (uart_message[j] == 'd' && uart_message[j + 1] == 'b')

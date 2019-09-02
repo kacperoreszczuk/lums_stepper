@@ -6,7 +6,7 @@
 \usepackage{graphicx}
 \usepackage{hyperref}
 \usepackage[font={small,it}]{caption}
-\usepackage[a4paper,top=1.0cm,bottom=2.5cm,left=1.2cm,right=1.2cm]{geometry}
+\usepackage[a4paper,top=1.1cm,bottom=2cm,left=1.9cm,right=1.9cm]{geometry}
 \usepackage{color, colortbl}
 \usepackage{tabularx}
 \usepackage{sectsty}
@@ -42,29 +42,29 @@ Low level motor driving operation  is performed by\textit{AMIS-30543} driver on 
 
 \begin{figure}[h]
  \centering
- \includegraphics[width = 12.5cm]{photo.png}
-\caption {Assembled LUMS stepper.} \label{photo}
+ \includegraphics[width = 11.5cm]{photo.png}
+\caption {Assembled LUMS Stepper.} \label{photo}
 \end{figure}
-
+\newpage
 \section{Software and protocol}
 
-Driver has two basic operation modes - movement with given velocity or movement to given position. In either of the cases the movement of motor is smoothed at starting and stopping. For user convenience speeds and positions are expressed in real units (for example millimeters in case of linear travel stage), not motor steps. When the mechanical setup of driven actuator is not completely rigid, the mechanical hysteresis can occur. Due to this effect real position of the  actuator depends on the direction from which set position is approached. In this solution allows user can specify the amplitude od mechanical hysteresis. Algorithm will track previous movements and compensate the offsets in a manner transparent for the user. 
+Driver has two basic operation modes - movement with given velocity or movement to given position. In either of the cases the movement of motor is smoothed at starting and stopping. For user convenience speeds and positions are expressed in real units (for example millimeters in case of linear travel stage), not motor steps. End switches (limit switches) of different types are supported by this driver. They provide additional safety, as the driver will stop at the edge of the movement range of, for example, linear translation stage. Limit switches are also used to automatically calibrate absolute position of the stage.
 
-User can communicate with LUMS Stepper via virtual serial port provided by Nucleo board. Protocol of communication is based on single line plain-text commands initiated from computer and on single line reply. For protocol description please refer to Table \ref{protocol}. Full list of accepted commands is presented in Table \ref{commands}
+When the mechanical setup of driven actuator is not completely rigid, the mechanical hysteresis can occur. Due to this effect real position of the  actuator depends on the direction from which set position is approached. In this project user can specify the amplitude od mechanical hysteresis. Algorithm will track previous movements and compensate the offsets in a manner transparent for the user.  
+
+User can communicate with LUMS Stepper via virtual serial port provided by Nucleo board. Protocol of communication is based on single line plain-text commands initiated from computer and on single line reply from driver. For protocol description please refer to Table \ref{protocol}. Full list of accepted commands is presented in Table \ref{commands}
 
 \begin{table}[ht]\centering
-\begin{tabularx}{\textwidth}{ll}
+\begin{tabularx}{\textwidth}{lX}
 \rowcolor[gray]{0.80} Command: & ID header value \textbackslash r \\
-\rowcolor[gray]{0.95} ID & Single digit number – number of motor. Defaults to 0 if not specified.\\
-\rowcolor[gray]{0.95} header & Two lower case characters specifying command type (table below).\\
+\rowcolor[gray]{0.95} ID & Single digit number – number of motor, counted from 0. Defaults to 0 if not specified.\\
+\rowcolor[gray]{0.95} header & Two lower case characters specifying command type (see table \ref{commands}).\\
 \rowcolor[gray]{0.95} value & Numerical argument (optional depending on command type). Defaults to 0 if not specified. \\
 \rowcolor[gray]{0.95} \textbackslash r\ & Carriage return as endline character. Other whitespace before, after or between command parts is ignored. \\
-\rowcolor[gray]{0.95} 
 \rowcolor[gray]{0.80} Reply: & header value \textbackslash r\\
 \rowcolor[gray]{0.95} header & Driver returns header after every command \\
 \rowcolor[gray]{0.95} value & Optional depending on command type\\
-\rowcolor[gray]{0.80}
-Error reply: & ?\textbackslash r\  \\
+\rowcolor[gray]{0.80} Error reply: & ?\textbackslash r\\
 \end{tabularx}
 \caption{Protocol of communication between PC and LUMS Stepper.}\label{protocol}
 \end{table}
