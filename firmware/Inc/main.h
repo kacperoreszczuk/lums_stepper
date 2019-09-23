@@ -1,3 +1,4 @@
+/* USER CODE BEGIN Header */
 /**
   ******************************************************************************
   * @file           : main.h
@@ -36,31 +37,59 @@
   *
   ******************************************************************************
   */
+/* USER CODE END Header */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __MAIN_H__
-#define __MAIN_H__
+#ifndef __MAIN_H
+#define __MAIN_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* Includes ------------------------------------------------------------------*/
+#include "stm32l4xx_hal.h"
 
+/* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
 /* USER CODE END Includes */
 
-/* Private define ------------------------------------------------------------*/
+/* Exported types ------------------------------------------------------------*/
+/* USER CODE BEGIN ET */
 
+/* USER CODE END ET */
+
+/* Exported constants --------------------------------------------------------*/
+/* USER CODE BEGIN EC */
+
+/* USER CODE END EC */
+
+/* Exported macro ------------------------------------------------------------*/
+/* USER CODE BEGIN EM */
+
+/* USER CODE END EM */
+
+/* Exported functions prototypes ---------------------------------------------*/
+void Error_Handler(void);
+
+/* USER CODE BEGIN EFP */
+
+/* USER CODE END EFP */
+
+/* Private defines -----------------------------------------------------------*/
 #define RLIMIT3_Pin GPIO_PIN_0
 #define RLIMIT3_GPIO_Port GPIOA
 #define VCP_TX_Pin GPIO_PIN_2
 #define VCP_TX_GPIO_Port GPIOA
-#define FLIMIT3_Pin GPIO_PIN_3
-#define FLIMIT3_GPIO_Port GPIOA
+#define CS2_Pin GPIO_PIN_3
+#define CS2_GPIO_Port GPIOA
 #define CS3_Pin GPIO_PIN_4
 #define CS3_GPIO_Port GPIOA
 #define DIR3_Pin GPIO_PIN_5
 #define DIR3_GPIO_Port GPIOA
-#define CS2_Pin GPIO_PIN_0
-#define CS2_GPIO_Port GPIOB
+#define FLIMIT3_Pin GPIO_PIN_0
+#define FLIMIT3_GPIO_Port GPIOB
 #define NXT1_Pin GPIO_PIN_1
 #define NXT1_GPIO_Port GPIOB
 #define DIR1_Pin GPIO_PIN_8
@@ -89,28 +118,14 @@
 #define RLIMIT2_GPIO_Port GPIOB
 #define FLIMIT2_Pin GPIO_PIN_7
 #define FLIMIT2_GPIO_Port GPIOB
-
-/* ########################## Assert Selection ############################## */
-/**
-  * @brief Uncomment the line below to expanse the "assert_param" macro in the 
-  *        HAL drivers code
-  */
-/* #define USE_FULL_ASSERT    1U */
-
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus
- extern "C" {
-#endif
-void _Error_Handler(char *, int);
-
-#define Error_Handler() _Error_Handler(__FILE__, __LINE__)
-#ifdef __cplusplus
 }
 #endif
 
-#endif /* __MAIN_H__ */
+#endif /* __MAIN_H */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

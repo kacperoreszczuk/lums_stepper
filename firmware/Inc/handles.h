@@ -7,4 +7,7 @@ extern uint32_t ticks;
 extern SPI_HandleTypeDef hspi1;
 extern UART_HandleTypeDef huart2;
 extern uint8_t tx_busy;
+
+extern TIM_HandleTypeDef htim1;
+extern TIM_HandleTypeDef htim2;
 #endif

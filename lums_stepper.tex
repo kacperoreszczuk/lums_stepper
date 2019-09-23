@@ -73,14 +73,17 @@ User can communicate with LUMS Stepper via virtual serial port provided by Nucle
 \begin{table}[ht] \centering
 \begin{tabularx}{\textwidth}{lllX}
 \rowcolor[gray]{0.80} Command & Abbreviation origin & Example & Description\\
+\rowcolor[gray]{0.90} id & ID & id & Returns unique ID of device, between 101 and 199.\\
 \rowcolor[gray]{0.95} ac & Axis Count & ac & Returns number of supported motors.\\
-\rowcolor[gray]{0.90} sc & Set Current & 0sc600 & Sets motor current, in milliamperes. \\
+\rowcolor[gray]{0.90} sc & Set Current & 0sc600 &Sets motor current, in miliamperes. Rounds down to nearest value: 132, 245, 355, 395, 445, 485, 540, 585, 640, 715, 780, 870, 955, 1060, 1150, 1260, 1405... (mA) \\
 \rowcolor[gray]{0.95} ss & Set Step & 0ss0.005 & Defines the size of motor full step in user units, for example in milimeters or degrees. \\
 \rowcolor[gray]{0.90} sh & Set Hysteresis & 0sh0.001 & Sets mechanical hysteresis compensation distance. Algorithm applies corrections to target positions when necessary (f. eg. when changing direction). \\
 \rowcolor[gray]{0.95} sm & Set Max Velocity & 0sm1.5 & Sets maximum allowed velocity in move velocity mode, in user units. \\
 \rowcolor[gray]{0.90} sv & Set Velocity & 0sv1 & Sets velocity in move absolute mode, in user units. \\
 \rowcolor[gray]{0.95} sa & Set Acceleration & 0sa0.5 & Sets time that it takes to accelerate from zero to move absolute velocity. \\
-\rowcolor[gray]{0.90} sl & Set Limit & 0sl2 & Sets limit switch type, notation compatible with Thorlabs$^®$ devices. 0 – no limit switch, 2 – connected active, 3 – disconnected active. \\
+\rowcolor[gray]{0.90} sl & Set Limit & 0sl2 & Sets limit switch type. 0 – no limit switch, 1 - active limit switch (active high). 2/3 – mechanical, default NC/C. 4/5 similarly to 2/3, but enabled only for homing. \\
+\rowcolor[gray]{0.95} sr & Set Reversed & 0sr1 & Reverses direction of motor rotation and swaps limit switches. \\
+\rowcolor[gray]{0.90} so & Set Offset & 0so4.2 & Specifies the position of the limit switch for homing. \\
 \rowcolor[gray]{0.95} hm & HoMe & 0hm & Starts homing procedure. If limit type is set to zero, then it only corrects current position to be zero. \\
 \rowcolor[gray]{0.90} mv & Move Velocity & 0mv0.5 & Sets target velocity. Driver will smoothly increase or decrease speed to given value. \\
 \rowcolor[gray]{0.95} ma & Move Absolute & 0ma3.2 & Sets target position. Driver will smoothly start and halt motor to achieve goal position. \\
