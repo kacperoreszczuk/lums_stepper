@@ -67,6 +67,7 @@ SPI_HandleTypeDef hspi1;
 
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
+TIM_HandleTypeDef htim7;
 
 UART_HandleTypeDef huart2;
 DMA_HandleTypeDef hdma_usart2_rx;
@@ -77,6 +78,8 @@ DMA_HandleTypeDef hdma_usart2_tx;
 
 uint8_t tx_busy = 0;
 uint8_t uart_receive_buffer[10];
+//uint8_t uart_buffer[UART_BUFFER_SIZE];
+uint32_t uart_count;
 uint32_t ticks;
 SPI_HandleTypeDef *spi1Handle;
 UART_HandleTypeDef *uart2Handle;
@@ -90,15 +93,26 @@ static void MX_SPI1_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_TIM1_Init(void);
 static void MX_TIM2_Init(void);
+static void MX_TIM7_Init(void);
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
-  __HAL_UART_SEND_REQ(uart2Handle, UART_RXDATA_FLUSH_REQUEST);
+  __HAL_UART_SEND_REQ(huart, UART_RXDATA_FLUSH_REQUEST);
   uart_byte_received(uart_receive_buffer[0]);
 }
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
-  tx_busy = 0;
+  tx_cplt();
+}
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+  if (htim->Instance == htim1.Instance)
+    nxt_tick();
+  else if (htim->Instance == htim7.Instance)
+    uart_analyse_buffer(); // TODO: to be triggered by UART Rx interrupt, but with lower priority
+  else if (htim->Instance == htim2.Instance)
+    control_tick();
 }
 /* USER CODE END PFP */
 
@@ -140,13 +154,12 @@ int main(void)
   MX_USART2_UART_Init();
   MX_TIM1_Init();
   MX_TIM2_Init();
+  MX_TIM7_Init();
   /* USER CODE BEGIN 2 */
 
-  spi1Handle = &hspi1;
-  __HAL_SPI_ENABLE(spi1Handle);
-
-  uart2Handle = &huart2;
-  HAL_UART_Receive_DMA(uart2Handle, uart_receive_buffer, 1);
+  HAL_TIM_Base_Start_IT(&htim7); // other timers are initialised in usrMain() after driver initialisation
+  __HAL_SPI_ENABLE(&hspi1);
+  HAL_UART_Receive_DMA(&huart2, uart_receive_buffer, 1);
 
   /* USER CODE END 2 */
 
@@ -352,6 +365,43 @@ static void MX_TIM2_Init(void)
 }
 
 /**
+  * @brief TIM7 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM7_Init(void)
+{
+
+  /* USER CODE BEGIN TIM7_Init 0 */
+
+  /* USER CODE END TIM7_Init 0 */
+
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM7_Init 1 */
+
+  /* USER CODE END TIM7_Init 1 */
+  htim7.Instance = TIM7;
+  htim7.Init.Prescaler = 79;
+  htim7.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim7.Init.Period = 299;
+  htim7.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
+  if (HAL_TIM_Base_Init(&htim7) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_UPDATE;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim7, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM7_Init 2 */
+  /* USER CODE END TIM7_Init 2 */
+
+}
+
+/**
   * @brief USART2 Initialization Function
   * @param None
   * @retval None
@@ -461,6 +511,7 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+
 
 /* USER CODE END 4 */
 

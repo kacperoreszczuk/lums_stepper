@@ -5,7 +5,7 @@
 #include "handles.h"
 #include "math.h"
 
-#define DRIVER_ID 103
+#define DRIVER_ID 104
  // in range 101 to 199
 
 #define min(a,b) (((a)<(b))?(a):(b))
@@ -14,11 +14,12 @@
 
 enum Mode {STOPPED, VELOCITY, POSITION, HOMING, HOMING_2};
 
-#define UART_BUFFER_SIZE 128
+#define UART_BUFFER_SIZE 250
 volatile uint8_t uart_buffer[UART_BUFFER_SIZE] = "";
 volatile uint8_t uart_message[UART_BUFFER_SIZE] = "";
-volatile uint8_t uart_count = 0;
-uint8_t uart_last_count = 0;
+volatile uint8_t uart_tx_buffer[UART_BUFFER_SIZE] = "";
+volatile uint16_t uart_tx_buffer_end = 0, uart_tx_buffer_begin = 0;
+uint32_t uart_last_count = 0;
 uint8_t uart_message_len = 0;
 
 uint8_t buffer[100]; // buffer for sprintf
@@ -30,31 +31,17 @@ uint32_t counter = 0;
 
 uint32_t t[10];
 
-volatile uint32_t count_control, count_tick;
-
-uint32_t intsqrt(uint32_t n)
-{
-    uint32_t c = 0x8000, g = 0x8000;
-    for(;;)
-    {
-        if(g*g > n)
-            g ^= c;
-        c >>= 1;
-        if(c == 0)
-            return g;
-        g |= c;
-    }
-}
+volatile uint32_t count_control, count_tick, counter2;
 
 #define NO_OF_MOTORS 3
 
 #if NO_OF_MOTORS == 6
 #define REPEAT(x) {x,x,x,x,x,x}
-GPIO_TypeDef *NXT_Port[] = {NXT1_GPIO_Port, NXT2_GPIO_Port, NXT3_GPIO_Port, NXT4_GPIO_Port, NXT5_GPIO_Port, NXT6_GPIO_Port};
-GPIO_TypeDef *DIR_Port[] = {DIR1_GPIO_Port, DIR2_GPIO_Port, DIR3_GPIO_Port, DIR4_GPIO_Port, DIR5_GPIO_Port, DIR6_GPIO_Port};
-GPIO_TypeDef *CS_Port[] = {CS1_GPIO_Port, CS2_GPIO_Port, CS3_GPIO_Port, CS4_GPIO_Port, CS5_GPIO_Port, CS6_GPIO_Port};
-GPIO_TypeDef *FLIMIT_Port[] = {FLIMIT1_GPIO_Port, FLIMIT2_GPIO_Port, FLIMIT3_GPIO_Port, FLIMIT4_GPIO_Port, FLIMIT5_GPIO_Port, FLIMIT6_GPIO_Port};
-GPIO_TypeDef *RLIMIT_Port[] = {RLIMIT1_GPIO_Port, RLIMIT2_GPIO_Port, RLIMIT3_GPIO_Port, RLIMIT4_GPIO_Port, RLIMIT5_GPIO_Port, RLIMIT6_GPIO_Port};
+GPIO_TypeDef* const NXT_Port[] = {NXT1_GPIO_Port, NXT2_GPIO_Port, NXT3_GPIO_Port, NXT4_GPIO_Port, NXT5_GPIO_Port, NXT6_GPIO_Port};
+GPIO_TypeDef* const DIR_Port[] = {DIR1_GPIO_Port, DIR2_GPIO_Port, DIR3_GPIO_Port, DIR4_GPIO_Port, DIR5_GPIO_Port, DIR6_GPIO_Port};
+GPIO_TypeDef* const CS_Port[] = {CS1_GPIO_Port, CS2_GPIO_Port, CS3_GPIO_Port, CS4_GPIO_Port, CS5_GPIO_Port, CS6_GPIO_Port};
+GPIO_TypeDef* const FLIMIT_Port[] = {FLIMIT1_GPIO_Port, FLIMIT2_GPIO_Port, FLIMIT3_GPIO_Port, FLIMIT4_GPIO_Port, FLIMIT5_GPIO_Port, FLIMIT6_GPIO_Port};
+GPIO_TypeDef* const RLIMIT_Port[] = {RLIMIT1_GPIO_Port, RLIMIT2_GPIO_Port, RLIMIT3_GPIO_Port, RLIMIT4_GPIO_Port, RLIMIT5_GPIO_Port, RLIMIT6_GPIO_Port};
 const uint16_t NXT_Pin[] = {NXT1_Pin, NXT2_Pin, NXT3_Pin, NXT4_Pin, NXT5_Pin, NXT6_Pin};
 const uint16_t DIR_Pin[] = {DIR1_Pin, DIR2_Pin, DIR3_Pin, DIR4_Pin, DIR5_Pin, DIR6_Pin};
 const uint16_t CS_Pin[] = {CS1_Pin, CS2_Pin, CS3_Pin, CS4_Pin, CS5_Pin, CS6_Pin};
@@ -64,11 +51,11 @@ const uint16_t RLIMIT_Pin[] = {RLIMIT1_Pin, RLIMIT2_Pin, RLIMIT3_Pin, RLIMIT4_Pi
 
 #if NO_OF_MOTORS == 3
 #define REPEAT(x) {x,x,x}
-GPIO_TypeDef *NXT_Port[] = {NXT1_GPIO_Port, NXT2_GPIO_Port, NXT3_GPIO_Port};
-GPIO_TypeDef *DIR_Port[] = {DIR1_GPIO_Port, DIR2_GPIO_Port, DIR3_GPIO_Port};
-GPIO_TypeDef *CS_Port[] = {CS1_GPIO_Port, CS2_GPIO_Port, CS3_GPIO_Port};
-GPIO_TypeDef *FLIMIT_Port[] = {FLIMIT1_GPIO_Port, FLIMIT2_GPIO_Port, FLIMIT3_GPIO_Port};
-GPIO_TypeDef *RLIMIT_Port[] = {RLIMIT1_GPIO_Port, RLIMIT2_GPIO_Port, RLIMIT3_GPIO_Port};
+GPIO_TypeDef* const NXT_Port[] = {NXT1_GPIO_Port, NXT2_GPIO_Port, NXT3_GPIO_Port};
+GPIO_TypeDef* const DIR_Port[] = {DIR1_GPIO_Port, DIR2_GPIO_Port, DIR3_GPIO_Port};
+GPIO_TypeDef* const CS_Port[] = {CS1_GPIO_Port, CS2_GPIO_Port, CS3_GPIO_Port};
+GPIO_TypeDef* const FLIMIT_Port[] = {FLIMIT1_GPIO_Port, FLIMIT2_GPIO_Port, FLIMIT3_GPIO_Port};
+GPIO_TypeDef* const RLIMIT_Port[] = {RLIMIT1_GPIO_Port, RLIMIT2_GPIO_Port, RLIMIT3_GPIO_Port};
 const uint16_t NXT_Pin[] = {NXT1_Pin, NXT2_Pin, NXT3_Pin};
 const uint16_t DIR_Pin[] = {DIR1_Pin, DIR2_Pin, DIR3_Pin};
 const uint16_t CS_Pin[] = {CS1_Pin, CS2_Pin, CS3_Pin};
@@ -105,6 +92,7 @@ volatile uint8_t limit_enabled[NO_OF_MOTORS] = REPEAT(0);
 volatile uint8_t homing_enabled[NO_OF_MOTORS] = REPEAT(0);
 volatile uint8_t emergency_button[NO_OF_MOTORS];
 volatile uint8_t reversed[NO_OF_MOTORS];
+volatile uint8_t clone_axis[NO_OF_MOTORS];
 volatile float homing_offset[NO_OF_MOTORS];
 volatile float limit_value_front[NO_OF_MOTORS] = REPEAT(0.5f);
 volatile float limit_value_rear[NO_OF_MOTORS] = REPEAT(0.5f);
@@ -116,7 +104,7 @@ volatile int32_t limit_on_position[NO_OF_MOTORS] = REPEAT(0x80000000);
 volatile int32_t limit_off_position[NO_OF_MOTORS] = REPEAT(0x80000000);
 const float limit_avg_remainder = 0.9f; // exponentially weighted mean filter
 const float limit_avg_new = 0.1f;
-const float limit_threshold_down = 0.2f;
+const float limit_threshold_down = 0.2f; 
 const float limit_threshold_up = 0.8f;
 
 void writeReg(uint8_t motor, uint8_t address, uint8_t value)
@@ -248,6 +236,8 @@ inline void motor_tick(const uint8_t motor)
             state[motor] = 0;
             last_dir[motor] = dir[motor]; // logical XOR
             HAL_GPIO_WritePin(NXT_Port[motor], NXT_Pin[motor], 0);
+            if (clone_axis[motor])
+                HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, 0);
             HAL_GPIO_WritePin(DIR_Port[motor], DIR_Pin[motor], reversed[motor] != last_dir[motor]);
         }
         else if (status[motor] != STOPPED && !(status[motor] == POSITION && current_position[motor] - target_position[motor] == 0))
@@ -289,6 +279,8 @@ inline void motor_tick(const uint8_t motor)
              && !( limit_state_front[motor] && !last_dir[motor] && limit_enabled[motor]))
             {
                 HAL_GPIO_WritePin(NXT_Port[motor], NXT_Pin[motor], 1);
+                if (clone_axis[motor])
+                    HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, 1);
                 if (last_dir[motor]) // logical XOR
                 {
                     current_position[motor]--;
@@ -312,6 +304,11 @@ void nxt_tick() // timer1 interrupt
     motor_tick(0);
     motor_tick(1);
     motor_tick(2);
+#if NO_OF_MOTORS == 6
+    motor_tick(3);
+    motor_tick(4);
+    motor_tick(5);
+#endif
 }
 
 void control_tick() // timer2 interrupt
@@ -323,8 +320,6 @@ void control_tick() // timer2 interrupt
     uint8_t motor;
 
     count_control++;
-
-    uart_analyse_buffer();
 
     t[1]=HAL_GetTick();
     
@@ -368,18 +363,23 @@ void control_tick() // timer2 interrupt
         {
             if (status[motor] == HOMING)
             {
-                if (limit_on_position[motor] != 0x80000000)
+                if (limit_on_position[motor] != 0x80000000 || limit_state_home[motor] == 1)
                 {
                     __disable_irq();
                     limit_off_position[motor] = 0x80000000;
                     __enable_irq();
                     status[motor] = HOMING_2;
-                    target_velocity[motor] = 0.05f * standard_velocity[motor];
+                    target_velocity[motor] = 0;
                 }
             }
             else
             {
-                if (limit_off_position[motor] != 0x80000000)
+                if (current_velocity[motor] == 0)
+                {
+                    limit_off_position[motor] = 0x80000000;
+                    target_velocity[motor] = 0.1f * standard_velocity[motor];
+                }   
+                else if (target_velocity[motor] != 0 && limit_off_position[motor] != 0x80000000) // else to introduce one loop cycle delay
                 {
                     __disable_irq();
                     status[motor] = POSITION;
@@ -432,7 +432,13 @@ void control_tick() // timer2 interrupt
         //count = sprintf((char*)buffer, "on %i, off %i, %i #\r", limit_on_position[0], limit_off_position[0], homing_offset[0]);
         //HAL_UART_Transmit(&huart2, buffer, count, 500);
         //count = sprintf((char*)buffer, "%u,%u ", (uint32_t)(limit_value_rear[0] * 1000), (uint32_t)(limit_value_front[0] * 1000));
-        //HAL_UART_Transmit(&huart2, buffer, count, 500);
+
+        /*t[0]=HAL_GetTick();
+        count = sprintf((char*)buffer, "asdfasdfuyasioyudfiaydfti8wqte876rthcx87qwe6crt87ah8rtx7awe6t8hdrt87ewawetrs8aswter876staw87e6rt87wawer");
+        uart_transmit(buffer, count);
+        t[1]=HAL_GetTick();
+        count = sprintf((char*)buffer, " %i %i\r", t[1] - t[0], counter2);
+        uart_transmit(buffer, count);*/
     }
 }
 
@@ -443,6 +449,44 @@ void uart_byte_received(uint8_t byte)
     uart_count %= UART_BUFFER_SIZE;
 }
 
+void tx_cplt()
+{
+    tx_busy = 0;
+    counter2 += 1;
+    check_tx_buffer();
+}
+
+void check_tx_buffer()
+{
+    if (tx_busy)
+        return; // sending, this function will be executed again at tx finish callback
+    uint8_t end = uart_tx_buffer_end; // i make a copy in case of value change
+    if (end > uart_tx_buffer_begin) // ordinary send, no circular buffer overflow
+    {
+        tx_busy = 1;
+        HAL_UART_Transmit_DMA(&huart2, (unsigned char*)(uart_tx_buffer + uart_tx_buffer_begin), end - uart_tx_buffer_begin);
+        uart_tx_buffer_begin = end;
+    }
+    else if (end < uart_tx_buffer_begin)// circular buffer overflow, now send only till the end of buffer
+    {
+        tx_busy = 1;
+        HAL_UART_Transmit_DMA(&huart2, (unsigned char*)(uart_tx_buffer + uart_tx_buffer_begin), UART_BUFFER_SIZE - uart_tx_buffer_begin);
+        uart_tx_buffer_begin = 0;
+    }
+
+}
+
+void uart_transmit(uint8_t *data, uint16_t len)
+{
+    uint8_t i;
+    for (i = 0; i < len; i++)
+    {
+        uart_tx_buffer[uart_tx_buffer_end] = data[i];
+        uart_tx_buffer_end = (uart_tx_buffer_end + 1) % UART_BUFFER_SIZE;
+    }
+    check_tx_buffer();
+}
+
 void uart_analyse_buffer()
 {
     uint8_t uart_current_count;
@@ -451,7 +495,8 @@ void uart_analyse_buffer()
     uint16_t current;
     float loose;
     uint16_t command_signature;
-
+    GPIO_InitTypeDef GPIO_InitStruct = {0};
+    
     uart_current_count = uart_count;
     i = uart_last_count;
 
@@ -464,6 +509,7 @@ void uart_analyse_buffer()
         if (byte == '\r' && uart_message_len > 1)
         {
             uart_message[uart_message_len] = 0;
+
             uint8_t j = 0;
 
             while (uart_message[j] == ' ' || uart_message[j] == '\t' || uart_message[j] == '\r' || uart_message[j] == '\n') // trim whitespace
@@ -472,7 +518,7 @@ void uart_analyse_buffer()
                 if (j + 2 >= uart_message_len) // must be at least three characters left - two for command and one for endline
                 {
                     uart_message_len = 0;
-                    HAL_UART_Transmit(&huart2, (unsigned char*)"?\r", 2, 500);
+                    uart_transmit(command_error, command_error_len);
                     //uart_analyse_buffer();
                     return;
                 }
@@ -488,7 +534,7 @@ void uart_analyse_buffer()
                     if (j + 2 >= uart_message_len) // must be at least three characters left - two for command and one for endline
                     {
                         uart_message_len = 0;
-                        HAL_UART_Transmit(&huart2, (unsigned char*)"?\r", 2, 500);
+                        uart_transmit(command_error, command_error_len);
                         //uart_analyse_buffer();
                         return;
                     }
@@ -518,7 +564,7 @@ void uart_analyse_buffer()
                         status[motor] = HOMING;
                     }
                     count = sprintf((char*)buffer, "hm\r");
-                    HAL_UART_Transmit(&huart2, buffer, count, 500);
+                    uart_transmit(buffer, count);
                     break;
                 case 0x0100 * 'm' + 'v':
                     target_velocity[motor] = value;
@@ -528,7 +574,7 @@ void uart_analyse_buffer()
                         target_velocity[motor] = -max_velocity[motor];
                     status[motor] = VELOCITY;
                     count = sprintf((char*)buffer, "mv\r");
-                    HAL_UART_Transmit(&huart2, buffer, count, 500);
+                    uart_transmit(buffer, count);
                     break;
                 case 0x0100 * 's' + 's':
                     step[motor] = value;
@@ -536,37 +582,47 @@ void uart_analyse_buffer()
                     status[motor] = STOPPED;
                     hysteresis_ticks[motor] = hysteresis[motor] / step[motor] * MICROSTEPS;
                     count = sprintf((char*)buffer, "ss\r");
-                    HAL_UART_Transmit(&huart2, buffer, count, 500);
+                    uart_transmit(buffer, count);
                     break;
                 case 0x0100 * 's' + 'v':
                     standard_velocity[motor] = value;
                     count = sprintf((char*)buffer, "sv\r");
-                    HAL_UART_Transmit(&huart2, buffer, count, 500);
+                    uart_transmit(buffer, count);
                     break;
                 case 0x0100 * 's' + 'm':
                     max_velocity[motor] = value;
                     count = sprintf((char*)buffer, "sm\r");
-                    HAL_UART_Transmit(&huart2, buffer, count, 500);
+                    uart_transmit(buffer, count);
                     break;
                 case 0x0100 * 's' + 'a':
                     acceleration_time_inv[motor] = 1.0f / value;
                     count = sprintf((char*)buffer, "sa\r");
-                    HAL_UART_Transmit(&huart2, buffer, count, 500);
+                    uart_transmit(buffer, count);
                     break;
                 case 0x0100 * 's' + 'o':
                     homing_offset[motor] = value;
                     count = sprintf((char*)buffer, "so\r");
-                    HAL_UART_Transmit(&huart2, buffer, count, 500);
+                    uart_transmit(buffer, count);
+                    break;
+                case 0x0100 * 'c' + 'a':
+                    for (j = 0; j < NO_OF_MOTORS; j++)
+                        clone_axis[j] = 0;
+                    clone_axis[motor] = 1;
+                    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+                    GPIO_InitStruct.Pull = GPIO_NOPULL;
+                    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+                    GPIO_InitStruct.Pin = LED_Pin;
+                    HAL_GPIO_Init(LED_GPIO_Port, &GPIO_InitStruct);
+                    count = sprintf((char*)buffer, "ca\r");
+                    uart_transmit(buffer, count);
                     break;
                 case 0x0100 * 's' + 'l': 
                     // 0 - no switch, 1 - active switch (high-active) 2 - active shorted, 
                     // 3 - active disconnected, 4,5 - like 2,3, but only for homing
                     limit_type = value + 0.5f;
-                    limit_active_state[motor] = (limit_type == 3 || limit_type == 1 || limit_type == 5) ? 1 : 0;
-                    homing_enabled[motor] = (limit_type == 1 || limit_type == 2 || limit_type == 3 || limit_type == 4 || limit_type == 5) ? 1 : 0;
+                    limit_active_state[motor] = (limit_type == 3 || limit_type == 1 || limit_type == 5 || limit_type == 6) ? 1 : 0;
+                    homing_enabled[motor] = (limit_type == 1 || limit_type == 2 || limit_type == 3 || limit_type == 4 || limit_type == 5 || limit_type == 6) ? 1 : 0;
                     limit_enabled[motor] = (limit_type == 1 || limit_type == 2 || limit_type == 3) ? 1 : 0;
-
-                    GPIO_InitTypeDef GPIO_InitStruct = {0};
                     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
                     if (limit_type == 2 || limit_type == 3 || limit_type == 4 || limit_type == 5)
                         GPIO_InitStruct.Pull = GPIO_PULLUP;
@@ -578,7 +634,7 @@ void uart_analyse_buffer()
                     HAL_GPIO_Init(RLIMIT_Port[motor], &GPIO_InitStruct);
 
                     count = sprintf((char*)buffer, "sl\r");
-                    HAL_UART_Transmit(&huart2, buffer, count, 500);
+                    uart_transmit(buffer, count);
                     break;
                 case 0x0100 * 'm' + 'a':
                     target_real_position[motor] = value / step[motor] * MICROSTEPS;
@@ -588,7 +644,7 @@ void uart_analyse_buffer()
                         target_position[motor] = target_real_position[motor] + hysteresis_ticks[motor];
                     status[motor] = POSITION;
                     count = sprintf((char*)buffer, "ma\r");
-                    HAL_UART_Transmit(&huart2, buffer, count, 500);
+                    uart_transmit(buffer, count);
                     break;
                 case 0x0100 * 'm' + 'r':
                     if (status[motor] == POSITION)
@@ -601,7 +657,7 @@ void uart_analyse_buffer()
                         target_position[motor] = target_real_position[motor] + hysteresis_ticks[motor];
                     status[motor] = POSITION;
                     count = sprintf((char*)buffer, "mr\r");
-                    HAL_UART_Transmit(&huart2, buffer, count, 500);
+                    uart_transmit(buffer, count);
                     break;
                 case 0x0100 * 't' + 'p':
                     count = sprintf((char*)buffer, "tp");
@@ -609,12 +665,11 @@ void uart_analyse_buffer()
                     if (val < 0)
                     {
                         count += sprintf((char*)buffer + count, "-");
-                        HAL_UART_Transmit(&huart2, buffer, count, 500);
                         val *= -1;
                     }
                     uint32_t int1 = val;
-                    count = sprintf((char*)buffer + count, "%d.%06d\r", (int)int1, (int)((val-int1) * 1000000));
-                    HAL_UART_Transmit(&huart2, buffer, count, 500);
+                    count += sprintf((char*)buffer + count, "%d.%06d\r", (int)int1, (int)((val-int1) * 1000000));
+                    uart_transmit(buffer, count);
                     break;
                 case 0x0100 * 't' + 'a':
                     count = sprintf((char*)buffer, "ta");
@@ -632,11 +687,11 @@ void uart_analyse_buffer()
                     for (motor=0; motor < NO_OF_MOTORS; motor++)
                         count += sprintf((char*)buffer + count, "%d", min(status[motor], 3));
                     count += sprintf((char*)buffer + count, "\r");
-                    HAL_UART_Transmit(&huart2, buffer, count, 500);
+                    uart_transmit(buffer, count);
                     break;
                 case 0x0100 * 'a' + 'c':
                     count = sprintf((char*)buffer, "ac%d\r", NO_OF_MOTORS);
-                    HAL_UART_Transmit(&huart2, buffer, count, 500);
+                    uart_transmit(buffer, count);
                     break;
                 case 0x0100 * 's' + 'c':
                     current = value;
@@ -646,7 +701,7 @@ void uart_analyse_buffer()
                         applySettings(motor);
                     }
                     count = sprintf((char*)buffer, "sc\r");
-                    HAL_UART_Transmit(&huart2, buffer, count, 500);
+                    uart_transmit(buffer, count);
                     break;
                 case 0x0100 * 's' + 'h':
                     loose = value;
@@ -656,31 +711,31 @@ void uart_analyse_buffer()
                         hysteresis_ticks[motor] = loose / step[motor] * MICROSTEPS;
                     }
                     count = sprintf((char*)buffer, "sh\r");
-                    HAL_UART_Transmit(&huart2, buffer, count, 500);
+                    uart_transmit(buffer, count);
                     break;
                 case 0x0100 * 't' + 's':
                     count = sprintf((char*)buffer, "ts%d\r", min(status[motor], 3));
-                    HAL_UART_Transmit(&huart2, buffer, count, 500);
+                    uart_transmit(buffer, count);
                     break;
                 case 0x0100 * 'r' + 's':
                     count = sprintf((char*)buffer, "rsF%d R%d\r",
                                     HAL_GPIO_ReadPin(FLIMIT_Port[motor], FLIMIT_Pin[motor]),
                                     HAL_GPIO_ReadPin(RLIMIT_Port[motor], RLIMIT_Pin[motor]));
-                    HAL_UART_Transmit(&huart2, buffer, count, 500);
+                    uart_transmit(buffer, count);
                     break;
                 case 0x0100 * 'i' + 'd':
                     count = sprintf((char*)buffer, "id%d\r", DRIVER_ID);
-                    HAL_UART_Transmit(&huart2, buffer, count, 500);
+                    uart_transmit(buffer, count);
                     break;
                 case 0x0100 * 's' + 'e':
                     emergency_button[motor] = (value != 0.0);
                     count = sprintf((char*)buffer, "se\r");
-                    HAL_UART_Transmit(&huart2, buffer, count, 500);
+                    uart_transmit(buffer, count);
                     break;
                 case 0x0100 * 's' + 'r':                  
                     reversed[motor] = (value != 0.0);
                     count = sprintf((char*)buffer, "sr\r");
-                    HAL_UART_Transmit(&huart2, buffer, count, 500);
+                    uart_transmit(buffer, count);
                     break; 
                 /*case 0x0100 * 'd' + 'b':
                     count = sprintf((char*)buffer, "db curr:%d targ:%d loos:%d mposvel:%d currvel:%d real:%d goal:%d stat:%d\n\r",
@@ -695,7 +750,7 @@ void uart_analyse_buffer()
                     HAL_UART_Transmit(&huart2, buffer, count, 500);
                     break;*/
                 default:
-                    HAL_UART_Transmit(&huart2, (unsigned char*)"?\r", 2, 500);
+                    uart_transmit(command_error, command_error_len);
             }
             uart_message_len = 0;
             return;
