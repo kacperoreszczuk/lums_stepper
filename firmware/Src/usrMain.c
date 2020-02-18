@@ -5,7 +5,7 @@
 #include "handles.h"
 #include "math.h"
 
-#define DRIVER_ID 104
+#define DRIVER_ID 108
  // in range 101 to 199
 
 #define min(a,b) (((a)<(b))?(a):(b))
@@ -28,10 +28,12 @@ uint8_t count; //for sprintf
 uint8_t command_error[] = "?\r";
 uint8_t command_error_len = 2;
 uint32_t counter = 0;
+uint8_t limit_phase;
 
 uint32_t t[10];
 
 volatile uint32_t count_control, count_tick, counter2;
+volatile uint32_t position_remainder;
 
 #define NO_OF_MOTORS 3
 
@@ -63,15 +65,16 @@ const uint16_t FLIMIT_Pin[] = {FLIMIT1_Pin, FLIMIT2_Pin, FLIMIT3_Pin};
 const uint16_t RLIMIT_Pin[] = {RLIMIT1_Pin, RLIMIT2_Pin, RLIMIT3_Pin};
 #endif
 
-#define TICK_PERIOD_NS (7500 * 2)
+#define TICK_PERIOD_NS (5200 * NO_OF_MOTORS)
+uint8_t nxt_tick_phase = 0;
 #define CONTROL_LOOP_FREQ 100
 const float CONTROL_LOOP_PERIOD = 1.0f / CONTROL_LOOP_FREQ; // to avoid slow float division later
 #define MICROSTEPS 64
 const float MICROSTEP_SIZE = 1.0f / MICROSTEPS; // to avoid slow float division later
-#define default_step 1.0f
-#define default_acceleration_time_inv 3.3f
-#define default_max_velocity 600.0f
-#define default_standard_velocity 600.0f
+#define default_step 10.0f
+#define default_acceleration_time_inv 3.0f
+#define default_max_velocity 1000.0f
+#define default_standard_velocity 500.0f
 #define default_hysteresis 0.0f
 uint8_t wr[NO_OF_MOTORS], cr0[NO_OF_MOTORS], cr1[NO_OF_MOTORS], cr2[NO_OF_MOTORS], cr3[NO_OF_MOTORS];
 volatile enum Mode status[NO_OF_MOTORS];
@@ -87,19 +90,21 @@ volatile float hysteresis[NO_OF_MOTORS] = REPEAT(default_hysteresis);
 volatile int32_t hysteresis_ticks[NO_OF_MOTORS] = REPEAT(default_hysteresis / default_step * MICROSTEPS);
 volatile float max_velocity[NO_OF_MOTORS] = REPEAT(default_max_velocity);
 volatile float standard_velocity[NO_OF_MOTORS] = REPEAT(default_standard_velocity);
-volatile uint8_t limit_active_state[NO_OF_MOTORS] = REPEAT(0);
-volatile uint8_t limit_enabled[NO_OF_MOTORS] = REPEAT(0);
-volatile uint8_t homing_enabled[NO_OF_MOTORS] = REPEAT(0);
+volatile uint8_t limit_active_state[NO_OF_MOTORS];
+volatile uint8_t limit_enabled[NO_OF_MOTORS];
+volatile uint8_t homing_enabled[NO_OF_MOTORS];
 volatile uint8_t emergency_button[NO_OF_MOTORS];
 volatile uint8_t reversed[NO_OF_MOTORS];
+volatile float period[NO_OF_MOTORS];
+volatile uint32_t period_ticks[NO_OF_MOTORS];
 volatile uint8_t clone_axis[NO_OF_MOTORS];
 volatile float homing_offset[NO_OF_MOTORS];
-volatile float limit_value_front[NO_OF_MOTORS] = REPEAT(0.5f);
-volatile float limit_value_rear[NO_OF_MOTORS] = REPEAT(0.5f);
+float limit_value_front[NO_OF_MOTORS] = REPEAT(0.5f);
+float limit_value_rear[NO_OF_MOTORS] = REPEAT(0.5f);
 volatile uint8_t limit_state_front[NO_OF_MOTORS];
 volatile uint8_t limit_state_rear[NO_OF_MOTORS];
 volatile uint8_t limit_state_home[NO_OF_MOTORS];
-volatile uint8_t limit_state_home_last[NO_OF_MOTORS];
+uint8_t limit_state_home_last[NO_OF_MOTORS];
 volatile int32_t limit_on_position[NO_OF_MOTORS] = REPEAT(0x80000000);
 volatile int32_t limit_off_position[NO_OF_MOTORS] = REPEAT(0x80000000);
 const float limit_avg_remainder = 0.9f; // exponentially weighted mean filter
@@ -225,56 +230,25 @@ void enableMotor(uint8_t motor)
     cr2[motor] |= 0b10000000;
 }
 
-inline void motor_tick(const uint8_t motor)
+inline void motor_tick_falling(const uint8_t motor)
+{
+    last_dir[motor] = dir[motor];
+    HAL_GPIO_WritePin(NXT_Port[motor], NXT_Pin[motor], 0);
+    if (clone_axis[motor])
+        HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, 0);
+    HAL_GPIO_WritePin(DIR_Port[motor], DIR_Pin[motor], reversed[motor] != last_dir[motor]);
+}
+
+inline void motor_tick_rising(const uint8_t motor)
 {
     clock[motor] += TICK_PERIOD_NS;
     if (goal[motor] != 0 && clock[motor] > goal[motor])
     {
         clock[motor] %= goal[motor];
-        if (state[motor])
-        {
-            state[motor] = 0;
-            last_dir[motor] = dir[motor]; // logical XOR
-            HAL_GPIO_WritePin(NXT_Port[motor], NXT_Pin[motor], 0);
-            if (clone_axis[motor])
-                HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, 0);
-            HAL_GPIO_WritePin(DIR_Port[motor], DIR_Pin[motor], reversed[motor] != last_dir[motor]);
-        }
-        else if (status[motor] != STOPPED && !(status[motor] == POSITION && current_position[motor] - target_position[motor] == 0))
+        if (status[motor] != STOPPED && !(status[motor] == POSITION && 
+            (/*(period_ticks[motor] && (current_position[motor] - target_position[motor]) % period_ticks[motor] == 0) ||
+             (!period_ticks[motor] && */current_position[motor] - target_position[motor] == 0 )))//)
         {   
-            if (reversed[motor])
-            {
-                limit_value_rear[motor] = limit_avg_remainder * limit_value_rear[motor] + 
-                    limit_avg_new * (!limit_active_state[motor] == !HAL_GPIO_ReadPin(FLIMIT_Port[motor], FLIMIT_Pin[motor]));
-                limit_value_front[motor] = limit_avg_remainder * limit_value_front[motor] + 
-                    limit_avg_new * (!limit_active_state[motor] == !HAL_GPIO_ReadPin(RLIMIT_Port[motor], RLIMIT_Pin[motor]));
-            }
-            else
-            {
-                limit_value_rear[motor] = limit_avg_remainder * limit_value_rear[motor] + 
-                    limit_avg_new * (!limit_active_state[motor] == !HAL_GPIO_ReadPin(RLIMIT_Port[motor], RLIMIT_Pin[motor]));
-                limit_value_front[motor] = limit_avg_remainder * limit_value_front[motor] + 
-                    limit_avg_new * (!limit_active_state[motor] == !HAL_GPIO_ReadPin(FLIMIT_Port[motor], FLIMIT_Pin[motor]));
-            }
-            if (limit_value_rear[motor] < limit_threshold_down)
-                limit_state_rear[motor] = 0;
-            else if (limit_value_rear[motor] > limit_threshold_up)
-                limit_state_rear[motor] = 1;
-
-            if (limit_value_front[motor] > limit_threshold_up)
-                limit_state_front[motor] = 1;
-            else if (limit_value_front[motor] < limit_threshold_down)
-                limit_state_front[motor] = 0;
-
-            limit_state_home_last[motor] = limit_state_home[motor];
-            limit_state_home[motor] = limit_state_rear[motor];
-
-            if (limit_state_home_last[motor] && ! limit_state_home[motor]) // limit just was deactivated
-                limit_off_position[motor] = current_position[motor]; 
-            if (! limit_state_home_last[motor] && limit_state_home[motor]) // limit just was activated
-                limit_on_position[motor] = current_position[motor];
-
-            state[motor] = 1;
             if (!( limit_state_rear[motor] && last_dir[motor] && limit_enabled[motor])
              && !( limit_state_front[motor] && !last_dir[motor] && limit_enabled[motor]))
             {
@@ -293,21 +267,98 @@ inline void motor_tick(const uint8_t motor)
                     if(current_position[motor] - hysteresis_ticks[motor] > real_position[motor])
                         real_position[motor] = current_position[motor] - hysteresis_ticks[motor];
                 }
+                /*if (period_ticks[motor])
+                {
+                    if (current_position[motor] < 0)
+                    {
+                        current_position[motor] += period_ticks[motor];
+                        real_position[motor] += period_ticks[motor];
+                    }
+                    else if (current_position[motor] > period_ticks[motor])
+                    {
+                        current_position[motor] -= period_ticks[motor];
+                        real_position[motor] -= period_ticks[motor];
+                    }
+                } */
             }
         }
     }
 }
 
+inline void read_limit(const uint8_t motor)
+{
+    if (reversed[motor])
+    {
+        limit_value_rear[motor] = limit_avg_remainder * limit_value_rear[motor] + 
+            limit_avg_new * (!limit_active_state[motor] == !HAL_GPIO_ReadPin(FLIMIT_Port[motor], FLIMIT_Pin[motor]));
+        limit_value_front[motor] = limit_avg_remainder * limit_value_front[motor] + 
+            limit_avg_new * (!limit_active_state[motor] == !HAL_GPIO_ReadPin(RLIMIT_Port[motor], RLIMIT_Pin[motor]));
+    }
+    else
+    {
+        limit_value_rear[motor] = limit_avg_remainder * limit_value_rear[motor] + 
+            limit_avg_new * (!limit_active_state[motor] == !HAL_GPIO_ReadPin(RLIMIT_Port[motor], RLIMIT_Pin[motor]));
+        limit_value_front[motor] = limit_avg_remainder * limit_value_front[motor] + 
+            limit_avg_new * (!limit_active_state[motor] == !HAL_GPIO_ReadPin(FLIMIT_Port[motor], FLIMIT_Pin[motor]));
+    }
+    
+    if (limit_value_rear[motor] < limit_threshold_down)
+        limit_state_rear[motor] = 0;
+    else if (limit_value_rear[motor] > limit_threshold_up)
+        limit_state_rear[motor] = 1;
+
+    if (limit_value_front[motor] > limit_threshold_up)
+        limit_state_front[motor] = 1;
+    else if (limit_value_front[motor] < limit_threshold_down)
+        limit_state_front[motor] = 0;
+
+    limit_state_home_last[motor] = limit_state_home[motor];
+    limit_state_home[motor] = limit_state_rear[motor];
+
+    if (limit_state_home_last[motor] && ! limit_state_home[motor]) // limit just was deactivated
+        limit_off_position[motor] = current_position[motor]; 
+    if (! limit_state_home_last[motor] && limit_state_home[motor]) // limit just was activated
+        limit_on_position[motor] = current_position[motor];
+}
+
+void limit_switch_tick() // timer6 interrupt
+{
+    //HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, 1);
+    if (limit_phase == 0)
+        read_limit(0);
+    if (limit_phase == 1)
+        read_limit(1);
+    if (limit_phase == 2)
+        read_limit(2);
+    limit_phase = (limit_phase + 1) % NO_OF_MOTORS;
+    //HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, 0);
+#if NO_OF_MOTORS != 3
+    NOT IMPLEMENTED
+#endif
+}
+
 void nxt_tick() // timer1 interrupt
 {
-    count_tick++;
-    motor_tick(0);
-    motor_tick(1);
-    motor_tick(2);
-#if NO_OF_MOTORS == 6
-    motor_tick(3);
-    motor_tick(4);
-    motor_tick(5);
+    //count_tick++;
+    if (nxt_tick_phase == 0)
+    {
+        motor_tick_falling(1);
+        motor_tick_rising(0);
+    }
+    else if (nxt_tick_phase == 1)
+    {
+        motor_tick_falling(2);
+        motor_tick_rising(1);
+    }
+    else if (nxt_tick_phase == 2)
+    {
+        motor_tick_falling(0);
+        motor_tick_rising(2);
+    }
+    nxt_tick_phase = (nxt_tick_phase + 1) % 3;
+    
+#if NO_OF_MOTORS != 3
+    NOT IMPLEMENTED
 #endif
 }
 
@@ -337,15 +388,26 @@ void control_tick() // timer2 interrupt
 
         if (status[motor] == POSITION)
         {
-            target_velocity[motor] = standard_velocity[motor];
-
-            // using hardware floating point sqrt in microcontroller 
-            target_velocity[motor] = min(standard_velocity[motor],
-                __builtin_sqrtf((float)(abs(current_position[motor] - target_position[motor])) * 2 * standard_velocity[motor] * acceleration_time_inv[motor] * step[motor] * MICROSTEP_SIZE));
-            if (current_position[motor] > target_position[motor])
-                target_velocity[motor] *= -1;
-            if (real_position[motor] == target_real_position[motor])
-                status[motor] = STOPPED;
+            /*if (period_ticks[motor])
+            {
+                target_velocity[motor] = min(standard_velocity[motor],
+                    __builtin_sqrtf((float)(abs(abs(current_position[motor] - target_position[motor]) % period_ticks[motor] - period_ticks[motor] / 2)) 
+                                    * 2 * standard_velocity[motor] * acceleration_time_inv[motor] * step[motor] * MICROSTEP_SIZE));
+                if ((current_position[motor] - target_position[motor]) % period_ticks[motor] < period_ticks[motor] / 2)
+                    target_velocity[motor] *= -1;
+                if ((real_position[motor] - target_real_position[motor]) % period_ticks[motor] == 0)
+                    status[motor] = STOPPED;
+            }
+            else*/
+            {
+                target_velocity[motor] = min(standard_velocity[motor],
+                    __builtin_sqrtf((float)(abs(current_position[motor] - target_position[motor])) 
+                                    * 2 * standard_velocity[motor] * acceleration_time_inv[motor] * step[motor] * MICROSTEP_SIZE));
+                if (current_position[motor] > target_position[motor])
+                    target_velocity[motor] *= -1;
+                if (real_position[motor] == target_real_position[motor])
+                    status[motor] = STOPPED;
+            }
         }
         if (status[motor] == STOPPED)
         {
@@ -384,9 +446,12 @@ void control_tick() // timer2 interrupt
                     __disable_irq();
                     status[motor] = POSITION;
                     real_position[motor] += -limit_off_position[motor] + homing_offset[motor] * step_inv[motor] * MICROSTEPS;
-                    target_real_position[motor] = 0;
                     current_position[motor] = real_position[motor] + hysteresis_ticks[motor];
-                    target_position[motor] = 0;
+                    target_real_position[motor] = 0;
+                    if(target_real_position[motor] < real_position[motor])
+                        target_position[motor] = target_real_position[motor];
+                    else
+                        target_position[motor] = target_real_position[motor] + hysteresis_ticks[motor];
                     __enable_irq();
                 }
             }
@@ -478,6 +543,8 @@ void check_tx_buffer()
 
 void uart_transmit(uint8_t *data, uint16_t len)
 {
+    HAL_UART_Transmit(&huart2, data, len, 500);
+    return;
     uint8_t i;
     for (i = 0; i < len; i++)
     {
@@ -491,7 +558,7 @@ void uart_analyse_buffer()
 {
     uint8_t uart_current_count;
     uint8_t i, limit_type;
-    uint8_t motor = 0;
+    uint8_t motor = 0, result;
     uint16_t current;
     float loose;
     uint16_t command_signature;
@@ -581,6 +648,7 @@ void uart_analyse_buffer()
                     step_inv[motor] = 1.0f / value;
                     status[motor] = STOPPED;
                     hysteresis_ticks[motor] = hysteresis[motor] / step[motor] * MICROSTEPS;
+                    //period_ticks[motor] = ((uint32_t)(period[motor] * step_inv[motor] + 0.5)) * MICROSTEPS;
                     count = sprintf((char*)buffer, "ss\r");
                     uart_transmit(buffer, count);
                     break;
@@ -603,7 +671,13 @@ void uart_analyse_buffer()
                     homing_offset[motor] = value;
                     count = sprintf((char*)buffer, "so\r");
                     uart_transmit(buffer, count);
-                    break;
+                    break;/*
+                case 0x0100 * 's' + 'p':
+                    period[motor] = value;
+                    period_ticks[motor] = ((uint32_t)(period[motor] * step_inv[motor] + 0.5)) * MICROSTEPS;
+                    count = sprintf((char*)buffer, "sp\r");
+                    uart_transmit(buffer, count);
+                    break;*/
                 case 0x0100 * 'c' + 'a':
                     for (j = 0; j < NO_OF_MOTORS; j++)
                         clone_axis[j] = 0;
@@ -638,6 +712,13 @@ void uart_analyse_buffer()
                     break;
                 case 0x0100 * 'm' + 'a':
                     target_real_position[motor] = value / step[motor] * MICROSTEPS;
+                    /*if (period_ticks[motor])
+                    {
+                        if (target_real_position[motor] > 0)
+                            target_real_position[motor] %= period_ticks[motor]
+                        else
+                            target_real_position[motor] = period_ticks[motor] - 1 - (-1 - target_real_position[motor]) % period_ticks[motor]
+                    }*/
                     if(target_real_position[motor] < real_position[motor])
                         target_position[motor] = target_real_position[motor];
                     else
@@ -661,7 +742,10 @@ void uart_analyse_buffer()
                     break;
                 case 0x0100 * 't' + 'p':
                     count = sprintf((char*)buffer, "tp");
-                    float val = real_position[motor] * step[motor] / MICROSTEPS;
+                    int32_t pos = real_position[motor];
+                    //if (period_ticks[motor] != 0)
+                    //    pos = pos % period_ticks[motor];
+                    float val = pos * step[motor] / MICROSTEPS;
                     if (val < 0)
                     {
                         count += sprintf((char*)buffer + count, "-");
@@ -673,9 +757,12 @@ void uart_analyse_buffer()
                     break;
                 case 0x0100 * 't' + 'a':
                     count = sprintf((char*)buffer, "ta");
-                    for (motor=0; motor < NO_OF_MOTORS; motor++)
+                    for (motor = 0; motor < NO_OF_MOTORS; motor++)
                     {
-                        float val = real_position[motor] * step[motor] / MICROSTEPS;
+                        int32_t pos = real_position[motor];
+                        /*if (period_ticks[motor] != 0)
+                            pos = pos % period_ticks[motor];*/
+                        float val = pos * step[motor] / MICROSTEPS;
                         if (val < 0)
                         {
                             count += sprintf((char*)buffer + count, "-");
@@ -684,8 +771,13 @@ void uart_analyse_buffer()
                         uint32_t int1 = val;
                         count += sprintf((char*)buffer + count, "%d.%06d ", (int)int1, (int)((val-int1) * 1000000));
                     }
-                    for (motor=0; motor < NO_OF_MOTORS; motor++)
-                        count += sprintf((char*)buffer + count, "%d", min(status[motor], 3));
+                    for (motor = 0; motor < NO_OF_MOTORS; motor++)
+                    {   
+                        result = min(status[motor], 3);
+                        if (emergency_button[motor] && !HAL_GPIO_ReadPin(LED_GPIO_Port, LED_Pin))
+                            result = 4;
+                        count += sprintf((char*)buffer + count, "%d", result);
+                    }
                     count += sprintf((char*)buffer + count, "\r");
                     uart_transmit(buffer, count);
                     break;
@@ -714,7 +806,10 @@ void uart_analyse_buffer()
                     uart_transmit(buffer, count);
                     break;
                 case 0x0100 * 't' + 's':
-                    count = sprintf((char*)buffer, "ts%d\r", min(status[motor], 3));
+                    result = min(status[motor], 3);
+                    if (emergency_button[motor] && !HAL_GPIO_ReadPin(LED_GPIO_Port, LED_Pin))
+                        result = 4;
+                    count = sprintf((char*)buffer, "ts%d\r", result);
                     uart_transmit(buffer, count);
                     break;
                 case 0x0100 * 'r' + 's':
@@ -738,7 +833,7 @@ void uart_analyse_buffer()
                     uart_transmit(buffer, count);
                     break; 
                 /*case 0x0100 * 'd' + 'b':
-                    count = sprintf((char*)buffer, "db curr:%d targ:%d loos:%d mposvel:%d currvel:%d real:%d goal:%d stat:%d\n\r",
+                    count = sprintf((char*)buffer, "db curr:%d targ:%d loos:%d mposvel:%d currvel:%d real:%d goal:%d stat:%d period: %d\n\r",
                                     (int)(current_position[motor]),
                                     (int)(target_position[motor]),
                                     (int)(hysteresis_ticks[motor]),
@@ -746,7 +841,8 @@ void uart_analyse_buffer()
                                     (int)(1000*current_velocity[motor]),
                                     (int)(real_position[motor]),
                                     (int)(goal[motor]),
-                                    (int)(status[motor]));
+                                    (int)(status[motor]),
+                                    (int)(period_ticks[motor]));
                     HAL_UART_Transmit(&huart2, buffer, count, 500);
                     break;*/
                 default:
