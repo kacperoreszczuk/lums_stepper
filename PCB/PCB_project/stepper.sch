@@ -1,6 +1,6 @@
 EESchema Schematic File Version 4
 LIBS:stepper-cache
-EELAYER 26 0
+EELAYER 30 0
 EELAYER END
 $Descr User 6378 7677
 encoding utf-8
@@ -460,15 +460,15 @@ F 3 "" H 5450 5450 50  0001 C CNN
 	1    5450 5450
 	0    -1   -1   0   
 $EndComp
-Text GLabel 3100 1100 0    50   Input ~ 0
+Text GLabel 3100 4700 0    50   Input ~ 0
 NXT1
-Text GLabel 3100 1200 0    50   Input ~ 0
+Text GLabel 3100 4800 0    50   Input ~ 0
 DIR1
-Text GLabel 3100 1600 0    50   Input ~ 0
+Text GLabel 3100 5200 0    50   Input ~ 0
 CS1
-Text GLabel 4850 1250 0    50   Input ~ 0
+Text GLabel 4850 4850 0    50   Input ~ 0
 FLIMIT1
-Text GLabel 4850 1450 0    50   Input ~ 0
+Text GLabel 4850 5050 0    50   Input ~ 0
 RLIMIT1
 Text GLabel 3100 2900 0    50   Input ~ 0
 NXT2
@@ -480,15 +480,15 @@ Text GLabel 4850 3050 0    50   Input ~ 0
 FLIMIT2
 Text GLabel 4850 3250 0    50   Input ~ 0
 RLIMIT2
-Text GLabel 4850 4850 0    50   Input ~ 0
+Text GLabel 4850 1250 0    50   Input ~ 0
 FLIMIT3
-Text GLabel 4850 5050 0    50   Input ~ 0
+Text GLabel 4850 1450 0    50   Input ~ 0
 RLIMIT3
-Text GLabel 3100 4700 0    50   Input ~ 0
+Text GLabel 3100 1100 0    50   Input ~ 0
 NXT3
-Text GLabel 3100 4800 0    50   Input ~ 0
+Text GLabel 3100 1200 0    50   Input ~ 0
 DIR3
-Text GLabel 3100 5200 0    50   Input ~ 0
+Text GLabel 3100 1600 0    50   Input ~ 0
 CS3
 $Comp
 L stepper-rescue:+12V-power #PWR0126
@@ -542,15 +542,15 @@ Wire Wire Line
 	1600 2800 1800 2800
 Wire Wire Line
 	1800 3050 1600 3050
-Text GLabel 900  900  0    50   Input ~ 0
+Text GLabel 900  1700 0    50   Input ~ 0
 NXT1
-Text GLabel 2300 1600 2    50   Input ~ 0
+Text GLabel 900  2000 0    50   Input ~ 0
 DIR1
-Text GLabel 2300 1700 2    50   Input ~ 0
+Text GLabel 900  2100 0    50   Input ~ 0
 CS1
-Text GLabel 2300 1800 2    50   Input ~ 0
+Text GLabel 900  2200 0    50   Input ~ 0
 FLIMIT1
-Text GLabel 2300 2000 2    50   Input ~ 0
+Text GLabel 900  2300 0    50   Input ~ 0
 RLIMIT1
 Text GLabel 2300 1900 2    50   Input ~ 0
 SCK
@@ -562,21 +562,21 @@ Text GLabel 900  1000 0    50   Input ~ 0
 NXT2
 Text GLabel 900  1300 0    50   Input ~ 0
 DIR2
-Text GLabel 900  1400 0    50   Input ~ 0
+Text GLabel 2300 1800 2    50   Input ~ 0
 CS2
 Text GLabel 900  1500 0    50   Input ~ 0
 FLIMIT2
 Text GLabel 900  1600 0    50   Input ~ 0
 RLIMIT2
-Text GLabel 900  1700 0    50   Input ~ 0
+Text GLabel 900  900  0    50   Input ~ 0
 NXT3
-Text GLabel 900  2000 0    50   Input ~ 0
+Text GLabel 2300 1600 2    50   Input ~ 0
 DIR3
-Text GLabel 900  2100 0    50   Input ~ 0
+Text GLabel 2300 1700 2    50   Input ~ 0
 CS3
-Text GLabel 900  2200 0    50   Input ~ 0
+Text GLabel 900  1400 0    50   Input ~ 0
 FLIMIT3
-Text GLabel 900  2300 0    50   Input ~ 0
+Text GLabel 2300 2000 2    50   Input ~ 0
 RLIMIT3
 NoConn ~ 2300 1300
 NoConn ~ 2300 2100
