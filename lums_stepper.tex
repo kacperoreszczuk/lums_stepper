@@ -26,7 +26,7 @@
 Stepper motors are commonly used in laboratory. They are powering x-y-z translation stages, tunable filters, polarisation optics and many other devices. The goal of this project is to replace commercially available drivers with a cheaper, more reliable and more universal solution. 
 
 \subsection*{Cost:}
-Commercially avaible stepper motor drivers designed for laboratory use can reach prices
+Commercially available stepper motor drivers designed for laboratory use can reach prices
 of a few hundred US\ Dollars for a single axis. Proposed solution costs about \$30 per axis with small
 labour cost.
 
@@ -75,8 +75,8 @@ User can communicate with LUMS Stepper via virtual serial port provided by Nucle
 \rowcolor[gray]{0.80} Command & Abbreviation origin & Example & Description\\
 \rowcolor[gray]{0.90} id & ID & id & Returns unique ID of device, between 101 and 199.\\
 \rowcolor[gray]{0.95} ac & Axis Count & ac & Returns number of supported motors.\\
-\rowcolor[gray]{0.90} sc & Set Current & 0sc600 &Sets motor current, in miliamperes. Rounds down to nearest value: 132, 245, 355, 395, 445, 485, 540, 585, 640, 715, 780, 870, 955, 1060, 1150, 1260, 1405... (mA) \\
-\rowcolor[gray]{0.95} ss & Set Step & 0ss0.005 & Defines the size of motor full step in user units, for example in milimeters or degrees. \\
+\rowcolor[gray]{0.90} sc & Set Current & 0sc600 &Sets motor current, in milliamperes. Rounds down to nearest value: 132, 245, 355, 395, 445, 485, 540, 585, 640, 715, 780, 870, 955, 1060, 1150, 1260, 1405... (mA) \\
+\rowcolor[gray]{0.95} ss & Set Step & 0ss0.005 & Defines the size of motor full step in user units, for example in millimetres or degrees. \\
 \rowcolor[gray]{0.90} sh & Set Hysteresis & 0sh0.001 & Sets mechanical hysteresis compensation distance. Algorithm applies corrections to target positions when necessary (f. eg. when changing direction). \\
 \rowcolor[gray]{0.95} sm & Set Max Velocity & 0sm1.5 & Sets maximum allowed velocity in move velocity mode, in user units. \\
 \rowcolor[gray]{0.90} sv & Set Velocity & 0sv1 & Sets velocity in move absolute mode, in user units. \\
