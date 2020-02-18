@@ -1,7 +1,7 @@
-tol = 0.15;
+tol = 0.035;
 
 mount_h = 6;
-mount_r_in = 0.7;
+mount_r_in = 0.92;
 mount_r_out = 3;
 $fn = 20;
 mounts_positions = [[5, 10, 0], [5, 40, 0], [35, 50, 0], [70, 50, 0], [70, 4, 0], [100, 5, 0]];
@@ -139,7 +139,7 @@ table_mount_h = 25;
 table_mount_d = 7;
 table_mount_dist = 15;
 table_mount_raster = 25.4;
-table_mount_support = 8;
+table_mount_support = 7.6;
 module table_mount(){
     union(){
         difference(){
