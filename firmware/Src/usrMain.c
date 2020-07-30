@@ -235,7 +235,7 @@ inline void motor_tick_falling(const uint8_t motor)
     last_dir[motor] = dir[motor];
     HAL_GPIO_WritePin(NXT_Port[motor], NXT_Pin[motor], 0);
     if (clone_axis[motor])
-        HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, 0);
+        HAL_GPIO_WritePin(EIO_GPIO_Port, EIO_Pin, 0);
     HAL_GPIO_WritePin(DIR_Port[motor], DIR_Pin[motor], reversed[motor] != last_dir[motor]);
 }
 
@@ -254,7 +254,7 @@ inline void motor_tick_rising(const uint8_t motor)
             {
                 HAL_GPIO_WritePin(NXT_Port[motor], NXT_Pin[motor], 1);
                 if (clone_axis[motor])
-                    HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, 1);
+                    HAL_GPIO_WritePin(EIO_GPIO_Port, EIO_Pin, 1);
                 if (last_dir[motor]) // logical XOR
                 {
                     current_position[motor]--;
@@ -323,7 +323,7 @@ inline void read_limit(const uint8_t motor)
 
 void limit_switch_tick() // timer6 interrupt
 {
-    //HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, 1);
+    //HAL_GPIO_WritePin(EIO_GPIO_Port, EIO_Pin, 1);
     if (limit_phase == 0)
         read_limit(0);
     if (limit_phase == 1)
@@ -331,7 +331,7 @@ void limit_switch_tick() // timer6 interrupt
     if (limit_phase == 2)
         read_limit(2);
     limit_phase = (limit_phase + 1) % NO_OF_MOTORS;
-    //HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, 0);
+    //HAL_GPIO_WritePin(EIO_GPIO_Port, EIO_Pin, 0);
 #if NO_OF_MOTORS != 3
     NOT IMPLEMENTED
 #endif
@@ -381,7 +381,7 @@ void control_tick() // timer2 interrupt
             count = sprintf((char*)buffer, "%i", status[motor]);
             HAL_UART_Transmit(&huart2, buffer, count, 500);
         }*/
-        if (emergency_button[motor] && HAL_GPIO_ReadPin(LED_GPIO_Port, LED_Pin) == 0)
+        if (emergency_button[motor] && HAL_GPIO_ReadPin(EIO_GPIO_Port, EIO_Pin) == 0)
         {
             status[motor] = STOPPED;
         }
@@ -678,15 +678,15 @@ void uart_analyse_buffer()
                     count = sprintf((char*)buffer, "sp\r");
                     uart_transmit(buffer, count);
                     break;*/
-                case 0x0100 * 'c' + 'a':
+                case 0x0100 * 'c' + 'a':  // undocumented feature, clones NXT pin of given axis to LD2 pin
                     for (j = 0; j < NO_OF_MOTORS; j++)
                         clone_axis[j] = 0;
                     clone_axis[motor] = 1;
                     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
                     GPIO_InitStruct.Pull = GPIO_NOPULL;
                     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-                    GPIO_InitStruct.Pin = LED_Pin;
-                    HAL_GPIO_Init(LED_GPIO_Port, &GPIO_InitStruct);
+                    GPIO_InitStruct.Pin = EIO_Pin;
+                    HAL_GPIO_Init(EIO_GPIO_Port, &GPIO_InitStruct);
                     count = sprintf((char*)buffer, "ca\r");
                     uart_transmit(buffer, count);
                     break;
@@ -774,7 +774,7 @@ void uart_analyse_buffer()
                     for (motor = 0; motor < NO_OF_MOTORS; motor++)
                     {   
                         result = min(status[motor], 3);
-                        if (emergency_button[motor] && !HAL_GPIO_ReadPin(LED_GPIO_Port, LED_Pin))
+                        if (emergency_button[motor] && !HAL_GPIO_ReadPin(EIO_GPIO_Port, EIO_Pin))
                             result = 4;
                         count += sprintf((char*)buffer + count, "%d", result);
                     }
@@ -807,7 +807,7 @@ void uart_analyse_buffer()
                     break;
                 case 0x0100 * 't' + 's':
                     result = min(status[motor], 3);
-                    if (emergency_button[motor] && !HAL_GPIO_ReadPin(LED_GPIO_Port, LED_Pin))
+                    if (emergency_button[motor] && !HAL_GPIO_ReadPin(EIO_GPIO_Port, EIO_Pin))
                         result = 4;
                     count = sprintf((char*)buffer, "ts%d\r", result);
                     uart_transmit(buffer, count);
@@ -871,7 +871,7 @@ int usrMain()
     while(1)
     {
         HAL_Delay(1000);
-        //HAL_GPIO_WritePin(_GPIO_Port, LED_Pin, 1);
+        //HAL_GPIO_WritePin(_GPIO_Port, EIO_Pin, 1);
     }
 
     return 0;

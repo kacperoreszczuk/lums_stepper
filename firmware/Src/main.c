@@ -299,7 +299,7 @@ static void MX_TIM1_Init(void)
   htim1.Instance = TIM1;
   htim1.Init.Prescaler = 1;
   htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim1.Init.Period = 207;
+  htim1.Init.Period = 212;
   htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim1.Init.RepetitionCounter = 0;
   htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
@@ -513,14 +513,14 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, CS2_Pin|DIR3_Pin|DIR1_Pin|NXT3_Pin 
+  HAL_GPIO_WritePin(GPIOA, EIO_Pin|DIR3_Pin|DIR1_Pin|NXT3_Pin 
                           |NXT2_Pin|DIR2_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOA, CS3_Pin|CS1_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(NXT1_GPIO_Port, NXT1_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, NXT1_Pin|CS2_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : RLIMIT3_Pin */
   GPIO_InitStruct.Pin = RLIMIT3_Pin;
@@ -528,29 +528,29 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(RLIMIT3_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : CS2_Pin CS3_Pin DIR3_Pin DIR1_Pin 
+  /*Configure GPIO pins : EIO_Pin CS3_Pin DIR3_Pin DIR1_Pin 
                            NXT3_Pin NXT2_Pin CS1_Pin DIR2_Pin */
-  GPIO_InitStruct.Pin = CS2_Pin|CS3_Pin|DIR3_Pin|DIR1_Pin 
+  GPIO_InitStruct.Pin = EIO_Pin|CS3_Pin|DIR3_Pin|DIR1_Pin 
                           |NXT3_Pin|NXT2_Pin|CS1_Pin|DIR2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : FLIMIT3_Pin LED_Pin RLIMIT1_Pin FLIMIT1_Pin 
-                           RLIMIT2_Pin FLIMIT2_Pin */
-  GPIO_InitStruct.Pin = FLIMIT3_Pin|LED_Pin|RLIMIT1_Pin|FLIMIT1_Pin 
-                          |RLIMIT2_Pin|FLIMIT2_Pin;
+  /*Configure GPIO pins : FLIMIT3_Pin RLIMIT1_Pin FLIMIT1_Pin RLIMIT2_Pin 
+                           FLIMIT2_Pin */
+  GPIO_InitStruct.Pin = FLIMIT3_Pin|RLIMIT1_Pin|FLIMIT1_Pin|RLIMIT2_Pin 
+                          |FLIMIT2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : NXT1_Pin */
-  GPIO_InitStruct.Pin = NXT1_Pin;
+  /*Configure GPIO pins : NXT1_Pin CS2_Pin */
+  GPIO_InitStruct.Pin = NXT1_Pin|CS2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(NXT1_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
 }
 

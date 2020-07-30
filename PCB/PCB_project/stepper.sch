@@ -562,7 +562,7 @@ Text GLabel 900  1000 0    50   Input ~ 0
 NXT2
 Text GLabel 900  1300 0    50   Input ~ 0
 DIR2
-Text GLabel 2300 1800 2    50   Input ~ 0
+Text GLabel 2300 2300 2    50   Input ~ 0
 CS2
 Text GLabel 900  1500 0    50   Input ~ 0
 FLIMIT2
@@ -580,7 +580,6 @@ Text GLabel 2300 2000 2    50   Input ~ 0
 RLIMIT3
 NoConn ~ 2300 1300
 NoConn ~ 2300 2100
-NoConn ~ 2300 2300
 NoConn ~ 900  1100
 NoConn ~ 900  1200
 NoConn ~ 2300 900 
@@ -602,4 +601,69 @@ NoConn ~ 5450 1650
 NoConn ~ 4850 1550
 NoConn ~ 4850 1350
 NoConn ~ 4850 1750
+$Comp
+L stepper-rescue:WIREPAD-motor_driver U7
+U 1 1 5EC2D357
+P 1600 3350
+F 0 "U7" H 1644 3172 50  0000 C CNN
+F 1 "EIN" H 1644 3263 50  0000 C CNN
+F 2 "TestPoint:TestPoint_Plated_Hole_D2.0mm" H 1600 3350 50  0001 C CNN
+F 3 "" H 1600 3350 50  0001 C CNN
+	1    1600 3350
+	-1   0    0    1   
+$EndComp
+$Comp
+L stepper-rescue:WIREPAD-motor_driver U9
+U 1 1 5EC2DD93
+P 1600 3850
+F 0 "U9" H 1644 3672 50  0000 C CNN
+F 1 "GND" H 1644 3763 50  0000 C CNN
+F 2 "TestPoint:TestPoint_Plated_Hole_D2.0mm" H 1600 3850 50  0001 C CNN
+F 3 "" H 1600 3850 50  0001 C CNN
+	1    1600 3850
+	-1   0    0    1   
+$EndComp
+$Comp
+L stepper-rescue:WIREPAD-motor_driver U8
+U 1 1 5EC2EA08
+P 1600 3600
+F 0 "U8" H 1644 3422 50  0000 C CNN
+F 1 "+3V3" H 1644 3513 50  0000 C CNN
+F 2 "TestPoint:TestPoint_Plated_Hole_D2.0mm" H 1600 3600 50  0001 C CNN
+F 3 "" H 1600 3600 50  0001 C CNN
+	1    1600 3600
+	-1   0    0    1   
+$EndComp
+$Comp
+L stepper-rescue:GND-power #PWR0103
+U 1 1 5EC2EFF3
+P 1800 3850
+F 0 "#PWR0103" H 1800 3600 50  0001 C CNN
+F 1 "GND" V 1805 3722 50  0000 R CNN
+F 2 "" H 1800 3850 50  0001 C CNN
+F 3 "" H 1800 3850 50  0001 C CNN
+	1    1800 3850
+	0    -1   -1   0   
+$EndComp
+$Comp
+L stepper-rescue:+3V3-power #PWR0128
+U 1 1 5EC2F830
+P 1800 3600
+F 0 "#PWR0128" H 1800 3450 50  0001 C CNN
+F 1 "+3V3" V 1815 3728 50  0000 L CNN
+F 2 "" H 1800 3600 50  0001 C CNN
+F 3 "" H 1800 3600 50  0001 C CNN
+	1    1800 3600
+	0    1    1    0   
+$EndComp
+Text GLabel 2300 1800 2    50   Input ~ 0
+EIN
+Text GLabel 1800 3350 2    50   Input ~ 0
+EIN
+Wire Wire Line
+	1600 3350 1800 3350
+Wire Wire Line
+	1800 3600 1600 3600
+Wire Wire Line
+	1600 3850 1800 3850
 $EndSCHEMATC
