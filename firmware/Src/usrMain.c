@@ -5,8 +5,22 @@
 #include "handles.h"
 #include "math.h"
 
-#define DRIVER_ID 108
- // in range 101 to 199
+/*
+Token (last 40 bytes of configPhrase) will hopefully occur once in the
+compiled binary. Finding it in binary will allow to change id config
+byte without recompiling. First byte denotes hardware id (minus offset 
+of 100). Second byte is reserved for XOR to maintain valid checksum 
+after editing bin file.
+*/
+
+volatile uint8_t config_phrase[] =
+    "\x08"   // ID (minus 100)
+    "\x00"   // reserved, leave 0
+    "uniquetoken45AD43383042B227439E97405EF5A";
+
+uint8_t driver_id(){
+    return config_phrase[0] + 100;
+}
 
 #define min(a,b) (((a)<(b))?(a):(b))
 #define max(a,b) (((a)>(b))?(a):(b))
@@ -98,6 +112,7 @@ volatile uint8_t reversed[NO_OF_MOTORS];
 volatile float period[NO_OF_MOTORS];
 volatile uint32_t period_ticks[NO_OF_MOTORS];
 volatile uint8_t clone_axis[NO_OF_MOTORS];
+volatile uint8_t homing_reversed[NO_OF_MOTORS];
 volatile float homing_offset[NO_OF_MOTORS];
 float limit_value_front[NO_OF_MOTORS] = REPEAT(0.5f);
 float limit_value_rear[NO_OF_MOTORS] = REPEAT(0.5f);
@@ -313,7 +328,10 @@ inline void read_limit(const uint8_t motor)
         limit_state_front[motor] = 0;
 
     limit_state_home_last[motor] = limit_state_home[motor];
-    limit_state_home[motor] = limit_state_rear[motor];
+    if (homing_reversed[motor])
+        limit_state_home[motor] = limit_state_front[motor];
+    else
+        limit_state_home[motor] = limit_state_rear[motor];
 
     if (limit_state_home_last[motor] && ! limit_state_home[motor]) // limit just was deactivated
         limit_off_position[motor] = current_position[motor]; 
@@ -439,9 +457,9 @@ void control_tick() // timer2 interrupt
                 if (current_velocity[motor] == 0)
                 {
                     limit_off_position[motor] = 0x80000000;
-                    target_velocity[motor] = 0.1f * standard_velocity[motor];
+                    target_velocity[motor] = (homing_reversed[motor] ? -1 : 1) * 0.1f * standard_velocity[motor];
                 }   
-                else if (target_velocity[motor] != 0 && limit_off_position[motor] != 0x80000000) // else to introduce one loop cycle delay
+                else if (target_velocity[motor] != 0 && limit_off_position[motor] != 0x80000000) // else to introduce one control loop cycle delay
                 {
                     __disable_irq();
                     status[motor] = POSITION;
@@ -524,15 +542,15 @@ void tx_cplt()
 void check_tx_buffer()
 {
     if (tx_busy)
-        return; // sending, this function will be executed again at tx finish callback
-    uint8_t end = uart_tx_buffer_end; // i make a copy in case of value change
-    if (end > uart_tx_buffer_begin) // ordinary send, no circular buffer overflow
+        return;  // sending, this function will be executed again at tx finish callback
+    uint8_t end = uart_tx_buffer_end;  // i make a copy in case of value change
+    if (end > uart_tx_buffer_begin)  // ordinary send, no circular buffer overflow
     {
         tx_busy = 1;
         HAL_UART_Transmit_DMA(&huart2, (unsigned char*)(uart_tx_buffer + uart_tx_buffer_begin), end - uart_tx_buffer_begin);
         uart_tx_buffer_begin = end;
     }
-    else if (end < uart_tx_buffer_begin)// circular buffer overflow, now send only till the end of buffer
+    else if (end < uart_tx_buffer_begin)  // circular buffer overflow, now send only till the end of buffer
     {
         tx_busy = 1;
         HAL_UART_Transmit_DMA(&huart2, (unsigned char*)(uart_tx_buffer + uart_tx_buffer_begin), UART_BUFFER_SIZE - uart_tx_buffer_begin);
@@ -608,6 +626,7 @@ void uart_analyse_buffer()
                 }
             }
             float value = strtof((char *)(uart_message + j + 2), NULL); // try to read numerical value from part of buffer two bytes ahead
+            int8_t int_value = value + 0.5f;
 
             command_signature = 0x0100 * uart_message[j] + uart_message[j+1];
 
@@ -627,10 +646,15 @@ void uart_analyse_buffer()
                         limit_off_position[motor] = 0x80000000;
                         limit_state_home_last[motor] = 0;
                         __enable_irq();
-                        target_velocity[motor] = -standard_velocity[motor]; // convert to pulses per second
+                        target_velocity[motor] = (homing_reversed[motor] ? -1 : 1) * (-standard_velocity[motor]); // convert to pulses per second
                         status[motor] = HOMING;
                     }
                     count = sprintf((char*)buffer, "hm\r");
+                    uart_transmit(buffer, count);
+                    break;
+                case 0x0100 * 'h' + 'r':
+                    homing_reversed[motor] = int_value;
+                    count = sprintf((char*)buffer, "hr\r");
                     uart_transmit(buffer, count);
                     break;
                 case 0x0100 * 'm' + 'v':
@@ -692,13 +716,12 @@ void uart_analyse_buffer()
                     break;
                 case 0x0100 * 's' + 'l': 
                     // 0 - no switch, 1 - active switch (high-active) 2 - active shorted, 
-                    // 3 - active disconnected, 4,5 - like 2,3, but only for homing
-                    limit_type = value + 0.5f;
-                    limit_active_state[motor] = (limit_type == 3 || limit_type == 1 || limit_type == 5 || limit_type == 6) ? 1 : 0;
-                    homing_enabled[motor] = (limit_type == 1 || limit_type == 2 || limit_type == 3 || limit_type == 4 || limit_type == 5 || limit_type == 6) ? 1 : 0;
-                    limit_enabled[motor] = (limit_type == 1 || limit_type == 2 || limit_type == 3) ? 1 : 0;
+                    // 3 - active disconnected, 4,5,6 - like 2,3,1, but only for homing, 
+                    limit_active_state[motor] = (int_value == 3 || int_value == 1 || int_value == 5 || int_value == 6) ? 1 : 0;
+                    homing_enabled[motor] = (int_value == 1 || int_value == 2 || int_value == 3 || int_value == 4 || int_value == 5 || int_value == 6) ? 1 : 0;
+                    limit_enabled[motor] = (int_value == 1 || int_value == 2 || int_value == 3) ? 1 : 0;
                     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-                    if (limit_type == 2 || limit_type == 3 || limit_type == 4 || limit_type == 5)
+                    if (int_value == 2 || int_value == 3 || int_value == 4 || int_value == 5)
                         GPIO_InitStruct.Pull = GPIO_PULLUP;
                     else
                         GPIO_InitStruct.Pull = GPIO_NOPULL;
@@ -819,7 +842,7 @@ void uart_analyse_buffer()
                     uart_transmit(buffer, count);
                     break;
                 case 0x0100 * 'i' + 'd':
-                    count = sprintf((char*)buffer, "id%d\r", DRIVER_ID);
+                    count = sprintf((char*)buffer, "id%d\r", driver_id());
                     uart_transmit(buffer, count);
                     break;
                 case 0x0100 * 's' + 'e':
@@ -868,11 +891,11 @@ int usrMain()
     HAL_TIM_Base_Start_IT(&htim1); 
     HAL_TIM_Base_Start_IT(&htim2); 
 
+    uint32_t swd_off_counter = 0;
     while(1)
     {
         HAL_Delay(1000);
-        //HAL_GPIO_WritePin(_GPIO_Port, EIO_Pin, 1);
-    }
+    } 
 
     return 0;
 }

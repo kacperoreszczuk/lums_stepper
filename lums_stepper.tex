@@ -69,7 +69,10 @@ User can communicate with LUMS Stepper via virtual serial port provided by Nucle
 \caption{Protocol of communication between PC and LUMS Stepper.}\label{protocol}
 \end{table}
 
-
+\subsection*{Acknowledgements}
+This work was supported by the Polish Ministry of Science and Higher
+Education in years 2017-2021 as research grant  "Diamentowy Grant" under
+decision 0149/DIA/2017/46.
 \begin{table}[ht] \centering
 \begin{tabularx}{\textwidth}{lllX}
 \rowcolor[gray]{0.80} Command & Abbreviation origin & Example & Description\\
@@ -83,14 +86,15 @@ User can communicate with LUMS Stepper via virtual serial port provided by Nucle
 \rowcolor[gray]{0.95} sa & Set Acceleration & 0sa0.5 & Sets time that it takes to accelerate from zero to move absolute velocity. \\
 \rowcolor[gray]{0.90} sl & Set Limit & 0sl2 & Sets limit switch type. 0 – no limit switch, 1 - active limit switch (active high). 2/3 – mechanical, default NC/C. 4/5 similarly to 2/3, but enabled only for homing. \\
 \rowcolor[gray]{0.95} sr & Set Reversed & 0sr1 & Reverses direction of motor rotation and swaps limit switches. \\
-\rowcolor[gray]{0.90} so & Set Offset & 0so4.2 & Specifies the position of the limit switch for homing. \\
-\rowcolor[gray]{0.95} hm & HoMe & 0hm & Starts homing procedure. If limit type is set to zero, then it only corrects current position to be zero. \\
-\rowcolor[gray]{0.90} mv & Move Velocity & 0mv0.5 & Sets target velocity. Driver will smoothly increase or decrease speed to given value. \\
-\rowcolor[gray]{0.95} ma & Move Absolute & 0ma3.2 & Sets target position. Driver will smoothly start and halt motor to achieve goal position. \\
-\rowcolor[gray]{0.90} mr & Move Relative & 0mr0.1 & Changes target position by given value, even if target position was not achieved yet. In „move velocity” mode sets target relative to current position. \\
-\rowcolor[gray]{0.95} tp & Tell Position & 0tp & Returns current position of given axis. \\
-\rowcolor[gray]{0.90} ts & Tell Status & 0ts & Returns status of current axis. 0 – stopped, 1 – move velocity, 2 - move position, 3 – homing. \\
-\rowcolor[gray]{0.95} ta & Tell All & ta & Returns current positions of all axes, separated by spaces. Next, after another space, returns statuses of all axes in single joined string. \\
+\rowcolor[gray]{0.90} so & Set Offset & 0so4.2 & Specifies the true position of the limit switch in user units. \\
+\rowcolor[gray]{0.95} hr & Homing Reversed & 0hm1 & Specifies if homing should be performed to rear limit switch (0, default) or to front limit switch (1).\\
+\rowcolor[gray]{0.90} hm & HoMe & 0hm & Starts homing procedure. If limit type is set to zero, then it only corrects current position to be zero. \\
+\rowcolor[gray]{0.95} mv & Move Velocity & 0mv0.5 & Sets target velocity. Driver will smoothly increase or decrease speed to given value. \\
+\rowcolor[gray]{0.90} ma & Move Absolute & 0ma3.2 & Sets target position. Driver will smoothly start and halt motor to achieve goal position. \\
+\rowcolor[gray]{0.95} mr & Move Relative & 0mr0.1 & Changes target position by given value, even if target position was not achieved yet. In „move velocity” mode sets target relative to current position. \\
+\rowcolor[gray]{0.90} tp & Tell Position & 0tp & Returns current position of given axis. \\
+\rowcolor[gray]{0.95} ts & Tell Status & 0ts & Returns status of current axis. 0 – stopped, 1 – move velocity, 2 - move position, 3 – homing. \\
+\rowcolor[gray]{0.90} ta & Tell All & ta & Returns current positions of all axes, separated by spaces. Next, after another space, returns statuses of all axes in single joined string. \\
 \end{tabularx}
 \caption{Commands in communication protocol.}\label{commands}
 \end{table}
@@ -114,7 +118,6 @@ User can communicate with LUMS Stepper via virtual serial port provided by Nucle
  \includegraphics[width = 15cm]{case.png}
 \caption {Case, model for 3D printer.} \label{case}
 \end{figure}
-
 
 
 
