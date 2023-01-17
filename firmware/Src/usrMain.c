@@ -18,7 +18,7 @@ volatile uint8_t config_phrase[] =
     "\x00"   // reserved, leave 0
     "uniquetoken45AD43383042B227439E97405EF5A";
 
-uint8_t driver_id(){
+uint8_t driver_id() {
     return config_phrase[0] + 100;
 }
 
@@ -79,7 +79,7 @@ const uint16_t FLIMIT_Pin[] = {FLIMIT1_Pin, FLIMIT2_Pin, FLIMIT3_Pin};
 const uint16_t RLIMIT_Pin[] = {RLIMIT1_Pin, RLIMIT2_Pin, RLIMIT3_Pin};
 #endif
 
-#define TICK_PERIOD_NS (5200 * NO_OF_MOTORS)
+#define TICK_PERIOD_NS (5325 * NO_OF_MOTORS)
 uint8_t nxt_tick_phase = 0;
 #define CONTROL_LOOP_FREQ 100
 const float CONTROL_LOOP_PERIOD = 1.0f / CONTROL_LOOP_FREQ; // to avoid slow float division later
@@ -575,7 +575,7 @@ void uart_transmit(uint8_t *data, uint16_t len)
 void uart_analyse_buffer()
 {
     uint8_t uart_current_count;
-    uint8_t i, limit_type;
+    uint8_t i;
     uint8_t motor = 0, result;
     uint16_t current;
     float loose;
@@ -891,7 +891,6 @@ int usrMain()
     HAL_TIM_Base_Start_IT(&htim1); 
     HAL_TIM_Base_Start_IT(&htim2); 
 
-    uint32_t swd_off_counter = 0;
     while(1)
     {
         HAL_Delay(1000);

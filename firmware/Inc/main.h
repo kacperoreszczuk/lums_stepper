@@ -102,10 +102,6 @@ void Error_Handler(void);
 #define CS1_GPIO_Port GPIOA
 #define DIR2_Pin GPIO_PIN_12
 #define DIR2_GPIO_Port GPIOA
-#define SWDIO_Pin GPIO_PIN_13
-#define SWDIO_GPIO_Port GPIOA
-#define SWCLK_Pin GPIO_PIN_14
-#define SWCLK_GPIO_Port GPIOA
 #define VCP_RX_Pin GPIO_PIN_15
 #define VCP_RX_GPIO_Port GPIOA
 #define CS2_Pin GPIO_PIN_3
